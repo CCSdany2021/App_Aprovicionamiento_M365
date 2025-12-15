@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 import os
 import sys
 from werkzeug.utils import secure_filename
@@ -10,6 +10,7 @@ from scripts.crear_estudiantes import CreadorEstudiantes
 from scripts.actualizacion_estudiantes import ActualizadorEstudiantes
 from scripts.eliminar_Estudiantes import EliminadorEstudiantes
 from scripts.vaciar_equipos import VaciadorEquipos
+from scripts.estadisticas import AnalizadorEstadisticas
 from scripts.configuracion import config
 
 app = Flask(__name__)
@@ -25,6 +26,24 @@ os.makedirs(config.CARPETA_LOGS, exist_ok=True)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    """Muestra el dashboard de estadísticas"""
+    analizador = AnalizadorEstadisticas()
+    stats = analizador.obtener_estadisticas_generales()
+    return render_template('dashboard.html', stats=stats)
+
+@app.route('/api/dashboard/charts')
+def dashboard_charts():
+    """API para obtener datos de gráficos"""
+    analizador = AnalizadorEstadisticas()
+    datos = {
+        'lineas': analizador.obtener_datos_grafico_lineas(),
+        'barras': analizador.obtener_datos_grafico_barras(),
+        'dona': analizador.obtener_datos_grafico_dona()
+    }
+    return jsonify(datos)
 
 @app.route('/upload/<accion>', methods=['GET', 'POST'])
 def upload(accion):

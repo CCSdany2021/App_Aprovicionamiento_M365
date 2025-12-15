@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block header %}Dashboard de Estadísticas{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Card: Total Operaciones -->
+    <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <i class="fa-solid fa-chart-simple" style="font-size: 2rem; color: var(--primary-color);"></i>
+        </div>
+        <div class="metric-value">{{ stats.total_operaciones }}</div>
+        <div class="metric-label">Total Operaciones</div>
+    </div>
+
+    <!-- Card: Estudiantes Procesados -->
+    <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <i class="fa-solid fa-users" style="font-size: 2rem; color: var(--primary-color);"></i>
+        </div>
+        <div class="metric-value">{{ stats.estudiantes_creados + stats.estudiantes_actualizados + stats.estudiantes_eliminados }}</div>
+        <div class="metric-label">Estudiantes Procesados</div>
+        <div class="metric-trend up">
+            <i class="fa-solid fa-arrow-up"></i> Creados: {{ stats.estudiantes_creados }}
+        </div>
+    </div>
+
+    <!-- Card: Teams Gestionados -->
+    <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <i class="fa-brands fa-microsoft" style="font-size: 2rem; color: var(--primary-color);"></i>
+        </div>
+        <div class="metric-value">{{ stats.teams_procesados }}</div>
+        <div class="metric-label">Teams Procesados</div>
+        <div class="metric-trend">
+            Miembros: {{ stats.miembros_eliminados + stats.owners_eliminados }}
+        </div>
+    </div>
+
+    <!-- Card: Tasa de Éxito -->
+    <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--success);"></i>
+        </div>
+        <div class="metric-value" style="color: var(--success);">{{ stats.tasa_exito }}%</div>
+        <div class="metric-label">Tasa de Éxito</div>
+        {% if stats.total_errores > 0 %}
+        <div class="metric-trend down">
+            <i class="fa-solid fa-exclamation-triangle"></i> Errores: {{ stats.total_errores }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+    <!-- Gráfico de Líneas: Operaciones por Día -->
+    <div class="chart-container">
+        <h3 class="chart-title">
+            <i class="fa-solid fa-chart-line"></i> Operaciones por Día (Últimos 30 días)
+        </h3>
+        <canvas id="chartLineas"></canvas>
+    </div>
+
+    <!-- Gráfico de Dona: Éxito vs Errores -->
+    <div class="chart-container">
+        <h3 class="chart-title">
+            <i class="fa-solid fa-chart-pie"></i> Distribución de Resultados
+        </h3>
+        <canvas id="chartDona"></canvas>
+    </div>
+</div>
+
+<!-- Gráfico de Barras: Operaciones por Tipo -->
+<div class="chart-container" style="margin-bottom: 1.5rem;">
+    <h3 class="chart-title">
+        <i class="fa-solid fa-chart-bar"></i> Operaciones por Tipo
+    </h3>
+    <canvas id="chartBarras"></canvas>
+</div>
+
+<!-- Tabla de Actividad Reciente -->
+<div class="chart-container">
+    <h3 class="chart-title">
+        <i class="fa-solid fa-clock-rotate-left"></i> Actividad Reciente
+    </h3>
+    <table class="activity-table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Detalles</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for actividad in stats.actividad_reciente %}
+            <tr>
+                <td>
+                    {% if actividad.tipo == 'crear_estudiantes' %}
+                        <i class="fa-solid fa-user-plus"></i> Crear Estudiantes
+                    {% elif actividad.tipo == 'actualizar_estudiantes' %}
+                        <i class="fa-solid fa-user-pen"></i> Actualizar Estudiantes
+                    {% elif actividad.tipo == 'eliminar_estudiantes' %}
+                        <i class="fa-solid fa-user-xmark"></i> Eliminar Estudiantes
+                    {% elif actividad.tipo == 'vaciar_equipos' %}
+                        <i class="fa-solid fa-users-slash"></i> Vaciar Teams
+                    {% endif %}
+                </td>
+                <td>{{ actividad.fecha }}</td>
+                <td>{{ actividad.detalles }}</td>
+                <td>
+                    {% if actividad.exito %}
+                        <span class="status-badge success">
+                            <i class="fa-solid fa-check"></i> Exitoso
+                        </span>
+                    {% else %}
+                        <span class="status-badge error">
+                            <i class="fa-solid fa-xmark"></i> Con Errores
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            
+            {% if not stats.actividad_reciente %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-light);">
+                    <i class="fa-solid fa-inbox"></i> No hay actividad registrada
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+// Cargar datos de gráficos
+fetch('/api/dashboard/charts')
+    .then(response => response.json())
+    .then(data => {
+        // Configuración común
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+                    }
+                }
+            }
+        };
+
+        // Gráfico de Líneas
+        const ctxLineas = document.getElementById('chartLineas').getContext('2d');
+        new Chart(ctxLineas, {
+            type: 'line',
+            data: {
+                labels: data.lineas.labels,
+                datasets: [{
+                    label: 'Operaciones',
+                    data: data.lineas.datasets[0].data,
+                    borderColor: '#4a90e2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-light')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-light')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Barras
+        const ctxBarras = document.getElementById('chartBarras').getContext('2d');
+        new Chart(ctxBarras, {
+            type: 'bar',
+            data: {
+                labels: data.barras.labels,
+                datasets: [{
+                    label: 'Cantidad',
+                    data: data.barras.datasets[0].data,
+                    backgroundColor: [
+                        'rgba(74, 144, 226, 0.8)',
+                        'rgba(255, 215, 0, 0.8)',
+                        'rgba(255, 107, 107, 0.8)',
+                        'rgba(81, 207, 102, 0.8)'
+                    ],
+                    borderColor: [
+                        '#4a90e2',
+                        '#ffd700',
+                        '#ff6b6b',
+                        '#51cf66'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-light')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-light')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Dona
+        const ctxDona = document.getElementById('chartDona').getContext('2d');
+        new Chart(ctxDona, {
+            type: 'doughnut',
+            data: {
+                labels: data.dona.labels,
+                datasets: [{
+                    data: data.dona.datasets[0].data,
+                    backgroundColor: [
+                        'rgba(81, 207, 102, 0.8)',
+                        'rgba(255, 107, 107, 0.8)'
+                    ],
+                    borderColor: [
+                        '#51cf66',
+                        '#ff6b6b'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: commonOptions
+        });
+    })
+    .catch(error => console.error('Error cargando gráficos:', error));
+</script>
+{% endblock %}

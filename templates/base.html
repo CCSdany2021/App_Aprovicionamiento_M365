@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión Estudiantes M365</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -18,7 +20,10 @@
             
             <nav class="nav-menu">
                 <a href="{{ url_for('index') }}" class="nav-item">
-                    <i class="fa-solid fa-house"></i> Dashboard
+                    <i class="fa-solid fa-house"></i> Inicio
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="nav-item">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
                 </a>
                 <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
                     <i class="fa-solid fa-user-plus"></i> Crear
@@ -28,6 +33,9 @@
                 </a>
                 <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
                     <i class="fa-solid fa-user-xmark"></i> Eliminar
+                </a>
+                <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
+                    <i class="fa-solid fa-users-slash"></i> Vaciar Teams
                 </a>
                 <a href="{{ url_for('logs') }}" class="nav-item">
                     <i class="fa-solid fa-file-lines"></i> Logs
@@ -42,6 +50,15 @@
         <main class="main-content">
             <header class="top-bar">
                 <h2>{% block header %}Panel de Control{% endblock %}</h2>
+                <div class="theme-toggle-container">
+                    <i class="fa-solid fa-sun" style="color: var(--text-light);"></i>
+                    <div class="theme-toggle" onclick="toggleTheme()">
+                        <div class="theme-toggle-slider">
+                            <i class="fa-solid fa-moon" id="theme-icon"></i>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-moon" style="color: var(--text-light);"></i>
+                </div>
             </header>
             
             <div class="content-area">
@@ -59,5 +76,32 @@
             </div>
         </main>
     </div>
+    
+    <script>
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        });
+        
+        // Toggle theme function
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+        
+        // Update icon based on theme
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+    </script>
 </body>
 </html>
