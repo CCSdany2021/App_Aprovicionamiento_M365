@@ -103,7 +103,20 @@ def ver_log(filename):
         flash(f'Error leyendo log: {e}', 'error')
         return redirect(url_for('logs'))
 
-@app.route('/descargar_inventario')
+@app.route('/descargar_log/<filename>')
+def descargar_log(filename):
+    """Descarga un archivo de log"""
+    try:
+        filepath = os.path.join(config.CARPETA_LOGS, filename)
+        if os.path.exists(filepath):
+            return send_file(filepath, as_attachment=True, download_name=filename)
+        else:
+            flash('Archivo de log no encontrado', 'error')
+            return redirect(url_for('logs'))
+    except Exception as e:
+        flash(f'Error descargando log: {e}', 'error')
+        return redirect(url_for('logs'))
+
 def descargar_inventario():
     """Genera y descarga el inventario de equipos"""
     try:

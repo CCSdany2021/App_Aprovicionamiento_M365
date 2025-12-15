@@ -20,8 +20,11 @@
                         {{ log }}
                     </td>
                     <td style="padding: 1rem; text-align: right;">
-                        <a href="{{ url_for('ver_log', filename=log) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background-color: #e2e6ea; color: #333;">
+                        <a href="{{ url_for('ver_log', filename=log) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background-color: #e2e6ea; color: #333; margin-right: 0.5rem;">
                             <i class="fa-regular fa-eye"></i> Ver
+                        </a>
+                        <a href="{{ url_for('descargar_log', filename=log) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background-color: #153459; color: white;">
+                            <i class="fa-solid fa-download"></i> Descargar
                         </a>
                     </td>
                 </tr>
