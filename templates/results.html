@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block header %}Resultados del Proceso{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-number">{{ resultados.total }}</span>
+        <span class="stat-label">Total Procesados</span>
+    </div>
+    
+    {% if accion == 'crear' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--success);">{{ resultados.creados }}</span>
+            <span class="stat-label">Creados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.licenciados }}</span>
+            <span class="stat-label">Licenciados</span>
+        </div>
+    {% elif accion == 'actualizar' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--success);">{{ resultados.actualizados }}</span>
+            <span class="stat-label">Actualizados</span>
+        </div>
+    {% elif accion == 'eliminar' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.eliminados }}</span>
+            <span class="stat-label">Eliminados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: gray;">{{ resultados.no_encontrados }}</span>
+            <span class="stat-label">No Encontrados</span>
+        </div>
+    {% elif accion == 'desvincular' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--primary-color);">{{ resultados.equipos_procesados }}</span>
+            <span class="stat-label">Equipos Procesados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.miembros_eliminados }}</span>
+            <span class="stat-label">Miembros Borrados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.owners_eliminados }}</span>
+            <span class="stat-label">Owners Borrados</span>
+        </div>
+    {% endif %}
+    
+    <div class="stat-card">
+        <span class="stat-number" style="color: {% if resultados.errores > 0 %}var(--danger){% else %}var(--success){% endif %};">
+            {{ resultados.errores }}
+        </span>
+        <span class="stat-label">Errores</span>
+    </div>
+</div>
+
+{% if resultados.detalles_errores or resultados.detalles %}
+<div class="card" style="align-items: flex-start; text-align: left;">
+    <h3 style="margin-bottom: 1rem;">Detalles del Proceso</h3>
+    <div class="log-container" style="width: 100%;">
+        {% if resultados.detalles_errores %}
+            {% for error in resultados.detalles_errores %}
+{{ error }}
+            {% endfor %}
+        {% endif %}
+        
+        {% if resultados.detalles %}
+            {% for detalle in resultados.detalles %}
+{{ detalle }}
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="actions" style="margin-top: 2rem; justify-content: flex-end;">
+    <a href="{{ url_for('upload', accion=accion) }}" class="btn btn-secondary">
+        <i class="fa-solid fa-rotate-right"></i> Nuevo Proceso
+    </a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+        <i class="fa-solid fa-house"></i> Ir al Inicio
+    </a>
+</div>
+{% endblock %}

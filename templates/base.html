@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Estudiantes M365</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i class="fa-brands fa-microsoft fa-2x"></i>
+                <h1>Gestión M365</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="{{ url_for('index') }}" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Dashboard
+                </a>
+                <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
+                    <i class="fa-solid fa-user-plus"></i> Crear
+                </a>
+                <a href="{{ url_for('upload', accion='actualizar') }}" class="nav-item">
+                    <i class="fa-solid fa-user-pen"></i> Actualizar
+                </a>
+                <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
+                    <i class="fa-solid fa-user-xmark"></i> Eliminar
+                </a>
+                <a href="{{ url_for('logs') }}" class="nav-item">
+                    <i class="fa-solid fa-file-lines"></i> Logs
+                </a>
+            </nav>
+            
+            <div class="user-info">
+                <p><i class="fa-solid fa-shield-halved"></i> Calasanz Suba</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h2>{% block header %}Panel de Control{% endblock %}</h2>
+            </header>
+            
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

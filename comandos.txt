@@ -1,0 +1,40 @@
+# -----------------------------------------
+#  COMANDOS PARA ENTORNOS VIRTUALES EN PYTHON (Windows)
+# -----------------------------------------
+
+#  1. CREAR ENTORNO VIRTUAL
+python -m venv venv
+
+#  2. ACTIVAR EL ENTORNO VIRTUAL (PowerShell)
+.\venv\Scripts\Activate.ps1
+
+#  2. ACTIVAR EL ENTORNO VIRTUAL (CMD)
+.\venv\Scripts\activate.bat
+#  2. ACTIVAR EL ENTORNO VIRTUAL (Git Bash)
+source venv/Scripts/activate
+
+#  3. ACTUALIZAR PIP (opcional pero recomendado)
+python -m pip install --upgrade pip
+
+#  4. INSTALAR DEPENDENCIAS DESDE requirements.txt
+pip install -r requirements.txt
+
+#  5. INSTALAR UNA LIBRERÍA MANUALMENTE (ejemplo)
+pip install openpyxl
+
+# 6. GUARDAR LAS LIBRERÍAS INSTALADAS EN UN ARCHIVO
+pip freeze > requirements.txt
+
+#  7. DESACTIVAR EL ENTORNO VIRTUAL
+deactivate
+
+#  8. ELIMINAR EL ENTORNO VIRTUAL COMPLETAMENTE
+#  Este comando borra la carpeta venv
+Remove-Item -Recurse -Force .\venv
+
+# -----------------------------------------
+# NOTA:
+# Si ves errores como "No Python at 'C:\Python312\python.exe'",
+# es porque el entorno virtual se creó con una versión de Python ya desinstalada.
+# En ese caso, recrea el entorno desde cero.
+# -----------------------------------------

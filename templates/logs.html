@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block header %}Historial de Logs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="width: 100%; text-align: left;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #eee;">
+                    <th style="padding: 1rem; text-align: left;">Nombre del Archivo</th>
+                    <th style="padding: 1rem; text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 1rem;">
+                        <i class="fa-regular fa-file-lines" style="margin-right: 0.5rem; color: var(--text-light);"></i>
+                        {{ log }}
+                    </td>
+                    <td style="padding: 1rem; text-align: right;">
+                        <a href="{{ url_for('ver_log', filename=log) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background-color: #e2e6ea; color: #333;">
+                            <i class="fa-regular fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                {% if not logs %}
+                <tr>
+                    <td colspan="2" style="padding: 2rem; text-align: center; color: var(--text-light);">
+                        No hay logs disponibles
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
