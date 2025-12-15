@@ -117,6 +117,8 @@ def descargar_log(filename):
         flash(f'Error descargando log: {e}', 'error')
         return redirect(url_for('logs'))
 
+
+@app.route('/descargar_inventario')
 def descargar_inventario():
     """Genera y descarga el inventario de equipos"""
     try:
@@ -131,6 +133,7 @@ def descargar_inventario():
     except Exception as e:
         flash(f"Error crítico: {str(e)}", "error")
         return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
