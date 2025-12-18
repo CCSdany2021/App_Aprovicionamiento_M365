@@ -1,78 +1,182 @@
-{% extends "base.html" %}
-
-{% block header %}Dashboard{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block header %}Dashboard{% endblock %} {% block
+content %}
 <div class="card-grid">
-    <!-- Crear Estudiantes -->
-    <a href="{{ url_for('upload', accion='crear') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon">
-                <i class="fa-solid fa-user-plus"></i>
-            </div>
-            <h3>Crear Estudiantes</h3>
-            <p>Importar nuevos estudiantes masivamente desde Excel o CSV.</p>
-            <span class="btn btn-primary">Iniciar Proceso <i class="fa-solid fa-arrow-right"></i></span>
-        </div>
-    </a>
+  <!-- Crear Estudiantes -->
+  <a
+    href="{{ url_for('upload', accion='crear') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div class="card-icon">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h3>Crear Estudiantes</h3>
+      <p>Importar nuevos estudiantes masivamente desde Excel o CSV.</p>
+      <span class="btn btn-primary"
+        >Iniciar Proceso <i class="fa-solid fa-arrow-right"></i
+      ></span>
+    </div>
+  </a>
 
-    <!-- Actualizar Estudiantes -->
-    <a href="{{ url_for('upload', accion='actualizar') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon">
-                <i class="fa-solid fa-user-pen"></i>
-            </div>
-            <h3>Actualizar Estudiantes</h3>
-            <p>Modificar, datos de estudiantes existentes en el tenant.</p>
-            <span class="btn btn-primary">Actualizar Datos <i class="fa-solid fa-arrow-right"></i></span>
-        </div>
-    </a>
+  <!-- Actualizar Estudiantes -->
+  <a
+    href="{{ url_for('upload', accion='actualizar') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div class="card-icon">
+        <i class="fa-solid fa-user-pen"></i>
+      </div>
+      <h3>Actualizar Estudiantes</h3>
+      <p>Modificar datos de estudiantes existentes en el tenant.</p>
+      <span class="btn btn-primary"
+        >Actualizar Datos <i class="fa-solid fa-arrow-right"></i
+      ></span>
+    </div>
+  </a>
 
-    <!-- Eliminar Estudiantes -->
-    <a href="{{ url_for('upload', accion='eliminar') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon" style="color: #dc3545; background-color: rgba(220, 53, 69, 0.1);">
-                <i class="fa-solid fa-user-xmark"></i>
-            </div>
-            <h3 style="color: #dc3545;">Eliminar Estudiantes</h3>
-            <p>Eliminar estudiantes del tenant de forma permanente.</p>
-            <span class="btn btn-secondary" style="background-color: #dc3545; color: white;">Eliminar Usuarios <i class="fa-solid fa-triangle-exclamation"></i></span>
-        </div>
-    </a>
+  <!-- Eliminar Estudiantes -->
+  <a
+    href="{{ url_for('upload', accion='eliminar') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #dc3545; background-color: rgba(220, 53, 69, 0.1)"
+      >
+        <i class="fa-solid fa-user-xmark"></i>
+      </div>
+      <h3 style="color: #dc3545">Eliminar Estudiantes</h3>
+      <p>Eliminar estudiantes del tenant de forma permanente.</p>
+      <span
+        class="btn btn-secondary"
+        style="background-color: #dc3545; color: white"
+        >Eliminar Usuarios <i class="fa-solid fa-triangle-exclamation"></i
+      ></span>
+    </div>
+  </a>
 
-    <!-- Desvincular Miembros -->
-    <a href="{{ url_for('upload', accion='desvincular') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon" style="color: #fd7e14; background-color: rgba(253, 126, 20, 0.1);">
-                <i class="fa-solid fa-link-slash"></i>
-            </div>
-            <h3>Vaciar Equipos (Teams)</h3>
-            <p>Remover estudiantes y docentes (Owners) dejando solo a CAP.</p>
-            <span class="btn btn-primary" style="background-color: #fd7e14; border-color: #fd7e14;">Vaciar Grupos <i class="fa-solid fa-people-arrows"></i></span>
-        </div>
-    </a>
+  <!-- Desvincular Miembros (Vaciar Equipos) -->
+  <a
+    href="{{ url_for('upload', accion='desvincular') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #fd7e14; background-color: rgba(253, 126, 20, 0.1)"
+      >
+        <i class="fa-solid fa-link-slash"></i>
+      </div>
+      <h3>Vaciar Equipos (Teams)</h3>
+      <p>Remover estudiantes y docentes (Owners) dejando solo a CAP.</p>
+      <span
+        class="btn btn-primary"
+        style="background-color: #fd7e14; border-color: #fd7e14"
+        >Vaciar Grupos <i class="fa-solid fa-people-arrows"></i
+      ></span>
+    </div>
+  </a>
 
-    <a href="{{ url_for('descargar_inventario') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon" style="color: #20c997; background-color: rgba(32, 201, 151, 0.1);">
-                <i class="fa-solid fa-file-excel"></i>
-            </div>
-            <h3>Inventario de Equipos</h3>
-            <p>Descargar Excel con TODOS los equipos (Teams) del tenant.</p>
-            <span class="btn btn-primary" style="background-color: #20c997; border-color: #20c997;">Descargar <i class="fa-solid fa-download"></i></span>
-        </div>
-    </a>
+  <!-- NUEVO: Eliminar Teams -->
+  <a
+    href="{{ url_for('upload', accion='eliminar_teams') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #6f42c1; background-color: rgba(111, 66, 193, 0.1)"
+      >
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 style="color: #6f42c1">Eliminar Teams</h3>
+      <p>Eliminar Teams completos del tenant de forma controlada.</p>
+      <span
+        class="btn btn-primary"
+        style="background-color: #6f42c1; border-color: #6f42c1"
+        >Eliminar Teams <i class="fa-solid fa-triangle-exclamation"></i
+      ></span>
+    </div>
+  </a>
 
-    <!-- Ver Logs -->
-    <a href="{{ url_for('logs') }}" style="text-decoration: none;">
-        <div class="card">
-            <div class="card-icon">
-                <i class="fa-solid fa-file-lines"></i>
-            </div>
-            <h3>Historial de Logs</h3>
-            <p>Consultar resultados y errores de procesos anteriores.</p>
-            <span class="btn btn-primary">Ver Historial <i class="fa-solid fa-clock-rotate-left"></i></span>
-        </div>
-    </a>
+  <!-- NUEVO: Crear Teams con Múltiples Owners -->
+  <a
+    href="{{ url_for('upload', accion='crear_teams_con_owners') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #7b2cbf; background-color: rgba(123, 44, 191, 0.1)"
+      >
+        <i class="fa-solid fa-users-plus"></i>
+      </div>
+      <h3 style="color: #7b2cbf">Crear Teams con Owners</h3>
+      <p>Clona Teams desde "Fuente" y agrega múltiples owners automáticamente (docente, coordinador, cuenta académica).</p>
+      <span
+        class="btn btn-primary"
+        style="background-color: #7b2cbf; border-color: #7b2cbf"
+        >Crear Teams <i class="fa-solid fa-copy"></i
+      ></span>
+    </div>
+  </a>
+
+  <!-- Inventario de Equipos -->
+  <a href="{{ url_for('descargar_inventario') }}" style="text-decoration: none">
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #20c997; background-color: rgba(32, 201, 151, 0.1)"
+      >
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <h3>Descargar Teams en el Tenant </h3>
+      <p>Descargar Excel con TODOS los equipos (Teams) del tenant.</p>
+      <span
+        class="btn btn-primary"
+        style="background-color: #20c997; border-color: #20c997"
+        >Descargar <i class="fa-solid fa-download"></i>
+      ></span>
+    </div>
+  </a>
+
+  <!-- Aprovisionar a Grupos -->
+  <a
+    href="{{ url_for('upload', accion='aprovisionar_grupos') }}"
+    style="text-decoration: none"
+  >
+    <div class="card">
+      <div
+        class="card-icon"
+        style="color: #17a2b8; background-color: rgba(23, 162, 184, 0.1)"
+      >
+        <i class="fa-solid fa-share-nodes"></i>
+      </div>
+      <h3 style="color: #17a2b8">Aprovisionar a Grupos</h3>
+      <p>Asociar estudiantes a grupos según su curso 2026.</p>
+      <span
+        class="btn btn-primary"
+        style="background-color: #17a2b8; border-color: #17a2b8"
+      >
+        Aprovisionar <i class="fa-solid fa-check"></i>
+      </span>
+    </div>
+  </a>
+
+  <!-- Ver Logs -->
+  <a href="{{ url_for('logs') }}" style="text-decoration: none">
+    <div class="card">
+      <div class="card-icon">
+        <i class="fa-solid fa-file-lines"></i>
+      </div>
+      <h3>Historial de Logs</h3>
+      <p>Consultar resultados y errores de procesos anteriores.</p>
+      <span class="btn btn-primary"
+        >Ver Historial <i class="fa-solid fa-clock-rotate-left"></i
+      ></span>
+    </div>
+  </a>
 </div>
 {% endblock %}

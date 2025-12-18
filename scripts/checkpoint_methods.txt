@@ -1,0 +1,95 @@
+    def calcular_hash_archivo(self, ruta_archivo: str) -> str:
+        """Calcula hash MD5 del archivo para detectar cambios"""
+        try:
+            with open(ruta_archivo, 'rb') as f:
+                return hashlib.md5(f.read()).hexdigest()
+        except Exception:
+            return ""
+    
+    def guardar_checkpoint(self):
+        """Guarda el progreso actual en un archivo checkpoint"""
+        try:
+            checkpoint_data = {
+                "version": "1.0",
+                "tipo_operacion": "vaciar_equipos",
+                "archivo_original": self.archivo_actual,
+                "hash_archivo": self.hash_archivo,
+                "fecha_inicio": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "equipos_procesados_ids": list(self.equipos_procesados_ids),
+                "estadisticas": {
+                    "total_equipos": self.resultados["total_equipos"],
+                    "equipos_procesados": self.resultados["equipos_procesados"],
+                    "miembros_eliminados": self.resultados["miembros_eliminados"],
+                    "owners_eliminados": self.resultados["owners_eliminados"],
+                    "errores": self.resultados["errores"]
+                }
+            }
+            
+            with open(self.checkpoint_file, 'w', encoding='utf-8') as f:
+                json.dump(checkpoint_data, f, indent=2)
+                
+        except Exception as e:
+            print(f"⚠️ Error guardando checkpoint: {e}")
+    
+    def cargar_checkpoint(self, ruta_archivo: str) -> dict:
+        """Carga checkpoint si existe y es válido"""
+        if not os.path.exists(self.checkpoint_file):
+            return None
+        
+        try:
+            with open(self.checkpoint_file, 'r', encoding='utf-8') as f:
+                checkpoint = json.load(f)
+            
+            # Verificar que el hash coincida
+            hash_actual = self.calcular_hash_archivo(ruta_archivo)
+            if checkpoint.get('hash_archivo') != hash_actual:
+                print("⚠️ El archivo ha cambiado desde el último checkpoint")
+                return None
+            
+            # Cargar IDs procesados
+            self.equipos_procesados_ids = set(checkpoint.get('equipos_procesados_ids', []))
+            
+            # Restaurar estadísticas
+            stats = checkpoint.get('estadisticas', {})
+            self.resultados["equipos_procesados"] = stats.get('equipos_procesados', 0)
+            self.resultados["miembros_eliminados"] = stats.get('miembros_eliminados', 0)
+            self.resultados["owners_eliminados"] = stats.get('owners_eliminados', 0)
+            self.resultados["errores"] = stats.get('errores', 0)
+            
+            return checkpoint
+            
+        except Exception as e:
+            print(f"⚠️ Error cargando checkpoint: {e}")
+            return None
+    
+    def limpiar_checkpoint(self):
+        """Elimina el archivo de checkpoint"""
+        try:
+            if os.path.exists(self.checkpoint_file):
+                os.remove(self.checkpoint_file)
+                print("✓ Checkpoint eliminado")
+        except Exception as e:
+            print(f"⚠️ Error eliminando checkpoint: {e}")
+    
+    def verificar_checkpoint_existe(self) -> bool:
+        """Verifica si existe un checkpoint"""
+        return os.path.exists(self.checkpoint_file)
+    
+    def obtener_info_checkpoint(self) -> dict:
+        """Obtiene información del checkpoint sin cargarlo completamente"""
+        if not os.path.exists(self.checkpoint_file):
+            return None
+        
+        try:
+            with open(self.checkpoint_file, 'r', encoding='utf-8') as f:
+                checkpoint = json.load(f)
+            
+            return {
+                "archivo": checkpoint.get('archivo_original', 'N/A'),
+                "fecha": checkpoint.get('fecha_inicio', 'N/A'),
+                "progreso": f"{checkpoint.get('estadisticas', {}).get('equipos_procesados', 0)}/{checkpoint.get('estadisticas', {}).get('total_equipos', 0)}",
+                "equipos_procesados": checkpoint.get('estadisticas', {}).get('equipos_procesados', 0),
+                "total_equipos": checkpoint.get('estadisticas', {}).get('total_equipos', 0)
+            }
+        except Exception:
+            return None

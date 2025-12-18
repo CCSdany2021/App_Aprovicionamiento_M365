@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import os
 import sys
 import time
+import json
+import hashlib
 
 # Añadir la carpeta scripts al path para importar configuración
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -23,6 +25,10 @@ class VaciadorEquipos:
         self.token = None
         self.token_expiracion = None  # Timestamp de expiración del token
         self.token_renovaciones = 0  # Contador de renovaciones
+        self.checkpoint_file = os.path.join(config.CARPETA_RESULTADOS, 'checkpoint_vaciar_equipos.json')
+        self.equipos_procesados_ids = set()  # IDs de equipos ya procesados
+        self.archivo_actual = None
+        self.hash_archivo = None
         self.resultados = {
             "total": 0,
             "total_equipos": 0,

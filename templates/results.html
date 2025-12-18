@@ -5,81 +5,225 @@
 {% block content %}
 <div class="stats-grid">
     <div class="stat-card">
-        <span class="stat-number">{{ resultados.total }}</span>
+        <span class="stat-number">{{ resultados.get('total', 0) }}</span>
         <span class="stat-label">Total Procesados</span>
     </div>
     
     {% if accion == 'crear' %}
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--success);">{{ resultados.creados }}</span>
+            <span class="stat-number" style="color: var(--success);">{{ resultados.get('creados', 0) }}</span>
             <span class="stat-label">Creados</span>
         </div>
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.licenciados }}</span>
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.get('licenciados', 0) }}</span>
             <span class="stat-label">Licenciados</span>
         </div>
+    
     {% elif accion == 'actualizar' %}
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--success);">{{ resultados.actualizados }}</span>
+            <span class="stat-number" style="color: var(--success);">{{ resultados.get('actualizados', 0) }}</span>
             <span class="stat-label">Actualizados</span>
         </div>
+    
     {% elif accion == 'eliminar' %}
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--danger);">{{ resultados.eliminados }}</span>
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.get('eliminados', 0) }}</span>
             <span class="stat-label">Eliminados</span>
         </div>
         <div class="stat-card">
-            <span class="stat-number" style="color: gray;">{{ resultados.no_encontrados }}</span>
+            <span class="stat-number" style="color: gray;">{{ resultados.get('no_encontrados', 0) }}</span>
             <span class="stat-label">No Encontrados</span>
         </div>
+    
     {% elif accion == 'desvincular' %}
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--primary-color);">{{ resultados.equipos_procesados }}</span>
+            <span class="stat-number" style="color: var(--primary-color);">{{ resultados.get('equipos_procesados', 0) }}</span>
             <span class="stat-label">Equipos Procesados</span>
         </div>
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.miembros_eliminados }}</span>
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.get('miembros_eliminados', 0) }}</span>
             <span class="stat-label">Miembros Borrados</span>
         </div>
         <div class="stat-card">
-            <span class="stat-number" style="color: var(--danger);">{{ resultados.owners_eliminados }}</span>
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.get('owners_eliminados', 0) }}</span>
             <span class="stat-label">Owners Borrados</span>
+        </div>
+    
+    {% elif accion == 'aprovisionar_grupos' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--success);">{{ resultados.get('aprobisionados', 0) }}</span>
+            <span class="stat-label">Aprovisionados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.get('grupos_creados', 0) }}</span>
+            <span class="stat-label">Grupos Creados</span>
+        </div>
+    
+    {% elif accion == 'vincular_grupos' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--success);">{{ resultados.get('vinculados', 0) }}</span>
+            <span class="stat-label">Vinculados</span>
+        </div>
+    
+    {% elif accion == 'eliminar_teams' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.get('eliminados', 0) }}</span>
+            <span class="stat-label">Teams Eliminados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.get('errores_eliminacion', 0) if resultados.get('errores_eliminacion') is number else (resultados.get('errores_eliminacion') | length if resultados.get('errores_eliminacion') else 0) }}</span>
+            <span class="stat-label">Errores Eliminación</span>
+        </div>
+    
+    {% elif accion == 'crear_teams_con_owners' %}
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--success);">{{ resultados.get('creados_exitosamente', 0) }}</span>
+            <span class="stat-label">Clonados Nuevos</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--secondary-color);">{{ resultados.get('equipos_ya_existentes', 0) }}</span>
+            <span class="stat-label">Ya Existían</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: #7b2cbf;">{{ resultados.get('total_owners_agregados', 0) }}</span>
+            <span class="stat-label">Owners Agregados</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--danger);">{{ resultados.get('docentes_no_encontrados', 0) }}</span>
+            <span class="stat-label">Docentes No Encontrados</span>
         </div>
     {% endif %}
     
+    <!-- CARD DE ERRORES (UNIVERSAL PARA TODOS LOS PROCESOS) -->
     <div class="stat-card">
-        <span class="stat-number" style="color: {% if resultados.errores > 0 %}var(--danger){% else %}var(--success){% endif %};">
-            {{ resultados.errores }}
+        <span class="stat-number" style="color: {% if resultados.get('errores') and (resultados.errores is iterable and resultados.errores is not string) and (resultados.errores | length > 0) %}var(--danger){% elif resultados.get('errores') and resultados.errores is number and resultados.errores > 0 %}var(--danger){% else %}var(--success){% endif %};">
+            {% if resultados.get('errores') %}
+                {% if resultados.errores is iterable and resultados.errores is not string %}
+                    {{ resultados.errores | length }}
+                {% else %}
+                    {{ resultados.errores }}
+                {% endif %}
+            {% else %}
+                0
+            {% endif %}
         </span>
         <span class="stat-label">Errores</span>
     </div>
 </div>
 
-{% if resultados.detalles_errores or resultados.detalles %}
+<!-- SECCIÓN: DETALLES Y ERRORES -->
+{% if resultados.get('detalles_errores') or resultados.get('detalles') or (resultados.get('errores') and resultados.errores) %}
 <div class="card" style="align-items: flex-start; text-align: left;">
-    <h3 style="margin-bottom: 1rem;">Detalles del Proceso</h3>
-    <div class="log-container" style="width: 100%;">
-        {% if resultados.detalles_errores %}
-            {% for error in resultados.detalles_errores %}
-{{ error }}
-            {% endfor %}
+    <h3 style="margin-bottom: 1rem;">📋 Detalles del Proceso</h3>
+    <div class="log-container" style="width: 100%; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 1rem; border-radius: 5px;">
+        
+        <!-- ERRORES (si es lista) -->
+        {% if resultados.get('errores') and (resultados.errores is iterable and resultados.errores is not string) and (resultados.errores | length > 0) %}
+            <div style="margin-bottom: 1rem;">
+                <h4 style="color: var(--danger); margin-bottom: 0.5rem;">❌ Errores Encontrados:</h4>
+                {% for error in resultados.errores %}
+                    <div style="color: var(--danger); margin: 0.3rem 0; font-size: 0.9rem;">• {{ error }}</div>
+                {% endfor %}
+            </div>
         {% endif %}
         
-        {% if resultados.detalles %}
-            {% for detalle in resultados.detalles %}
-{{ detalle }}
-            {% endfor %}
+        <!-- DETALLES DE ERRORES -->
+        {% if resultados.get('detalles_errores') %}
+            <div style="margin-bottom: 1rem;">
+                <h4 style="color: var(--danger); margin-bottom: 0.5rem;">❌ Detalles de Errores:</h4>
+                {% if resultados.detalles_errores is iterable and resultados.detalles_errores is not string %}
+                    {% for error in resultados.detalles_errores %}
+                        <div style="color: var(--danger); margin: 0.3rem 0; font-size: 0.9rem;">• {{ error }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div style="color: var(--danger); margin: 0.3rem 0; font-size: 0.9rem;">{{ resultados.detalles_errores }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- DETALLES GENERALES -->
+        {% if resultados.get('detalles') %}
+            <div>
+                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">ℹ️ Detalles:</h4>
+                {% if resultados.detalles is iterable and resultados.detalles is not string %}
+                    {% for detalle in resultados.detalles %}
+                        <div style="margin: 0.3rem 0; font-size: 0.9rem;">• {{ detalle }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div style="margin: 0.3rem 0; font-size: 0.9rem;">{{ resultados.detalles }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- EQUIPOS SALTADOS (para crear_teams_con_owners) -->
+        {% if resultados.get('equipos_saltados') and (resultados.equipos_saltados | length > 0) %}
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">⚠️ Equipos Saltados ({{ resultados.equipos_saltados | length }}):</h4>
+                {% for equipo in resultados.equipos_saltados %}
+                    <div style="margin: 0.3rem 0; font-size: 0.9rem;">
+                        • <strong>{{ equipo.Equipo }}</strong>: {{ equipo.Razon }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- EQUIPOS PROCESADOS (para crear_teams_con_owners) -->
+        {% if resultados.get('equipos_procesados') and (resultados.equipos_procesados | length > 0) %}
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                <h4 style="color: var(--success); margin-bottom: 0.5rem;">✅ Equipos Procesados ({{ resultados.equipos_procesados | length }}):</h4>
+                {% for equipo in resultados.equipos_procesados | slice(10) %}
+                    <div style="margin: 0.3rem 0; font-size: 0.9rem;">
+                        • <strong>{{ equipo.Equipo }}</strong>: {{ equipo.Resultado }}
+                    </div>
+                {% endfor %}
+                {% if resultados.equipos_procesados | length > 10 %}
+                    <div style="margin-top: 0.5rem; font-style: italic; color: gray;">
+                        ... y {{ resultados.equipos_procesados | length - 10 }} más (ver log completo para detalles)
+                    </div>
+                {% endif %}
+            </div>
         {% endif %}
     </div>
 </div>
 {% endif %}
 
-<div class="actions" style="margin-top: 2rem; justify-content: flex-end;">
+<!-- RESUMEN FINAL -->
+<div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-top: 1.5rem;">
+    <h3 style="color: white; margin-bottom: 0.5rem;">✨ Resumen Final</h3>
+    <p style="margin: 0.5rem 0;">
+        {% if accion == 'crear_teams_con_owners' %}
+            Se procesaron <strong>{{ resultados.get('total', 0) }}</strong> equipos.
+            <strong>{{ resultados.get('creados_exitosamente', 0) }}</strong> fueron clonados exitosamente,
+            <strong>{{ resultados.get('equipos_ya_existentes', 0) }}</strong> ya existían,
+            y se agregaron <strong>{{ resultados.get('total_owners_agregados', 0) }}</strong> owners en total.
+            {% if resultados.get('docentes_no_encontrados', 0) > 0 %}
+                Se encontraron <strong>{{ resultados.docentes_no_encontrados }}</strong> docentes no encontrados.
+            {% endif %}
+        {% else %}
+            El proceso se completó con <strong>{{ resultados.get('total', 0) }}</strong> elementos procesados.
+            {% set error_count = resultados.get('errores', 0) %}
+            {% if error_count is iterable and error_count is not string %}
+                Se registraron <strong>{{ error_count | length }}</strong> errores.
+            {% elif error_count is number %}
+                Se registraron <strong>{{ error_count }}</strong> errores.
+            {% else %}
+                Sin errores detectados.
+            {% endif %}
+        {% endif %}
+    </p>
+</div>
+
+<!-- BOTONES DE ACCIÓN -->
+<div class="actions" style="margin-top: 2rem; justify-content: flex-end; gap: 1rem;">
     <a href="{{ url_for('upload', accion=accion) }}" class="btn btn-secondary">
         <i class="fa-solid fa-rotate-right"></i> Nuevo Proceso
+    </a>
+    <a href="{{ url_for('logs') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-file-lines"></i> Ver Logs
     </a>
     <a href="{{ url_for('index') }}" class="btn btn-primary">
         <i class="fa-solid fa-house"></i> Ir al Inicio
     </a>
 </div>
+
 {% endblock %}

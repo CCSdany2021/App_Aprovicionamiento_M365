@@ -3,6 +3,7 @@ import os
 import sys
 from werkzeug.utils import secure_filename
 
+
 # Añadir carpeta scripts al path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'scripts'))
 
@@ -10,9 +11,14 @@ from scripts.crear_estudiantes import CreadorEstudiantes
 from scripts.actualizacion_estudiantes import ActualizadorEstudiantes
 from scripts.eliminar_Estudiantes import EliminadorEstudiantes
 from scripts.vaciar_equipos import VaciadorEquipos
+from scripts.eliminar_equipos_teams import EliminadorTeams
 from scripts.estadisticas import AnalizadorEstadisticas
 from scripts.configuracion import config
+from scripts.gestor_aprovisionamiento_grupos_simplificado import GestorAprovisionamientoGruposSimplificado
+from scripts.vinculador_estudiantes_grupos import VinculadorEstudiantesGrupos
+from scripts.creador_equipos_teams_multiples_owners import CreadorEquiposTeamsMultipleOwners
 
+    
 app = Flask(__name__)
 app.secret_key = 'supersecretkey_calasanz' # Cambiar en producción
 app.config['UPLOAD_FOLDER'] = 'archivos_subidos'
@@ -47,7 +53,8 @@ def dashboard_charts():
 
 @app.route('/upload/<accion>', methods=['GET', 'POST'])
 def upload(accion):
-    if accion not in ['crear', 'actualizar', 'eliminar', 'desvincular']:
+    # ✅ CAMBIO IMPORTANTE: Agregar 'crear_teams_con_owners' a la lista válida
+    if accion not in ['crear', 'actualizar', 'eliminar', 'desvincular', 'aprovisionar_grupos', 'vincular_grupos', 'eliminar_teams', 'crear_teams_con_owners']:
         flash('Acción no válida', 'error')
         return redirect(url_for('index'))
         
@@ -74,16 +81,23 @@ def upload(accion):
         else:
             flash('Formato no permitido. Use .xlsx o .csv', 'error')
             
+    # ✅ CAMBIO IMPORTANTE: Diccionario de títulos
     titulos = {
         'crear': 'Crear Nuevos Estudiantes',
         'actualizar': 'Actualizar Estudiantes',
+        'eliminar': 'Eliminar Estudiantes',           
         'configuracion': 'Configuración del Sistema',
-        'desvincular': 'Vaciar Equipos (Teams)'
+        'desvincular': 'Vaciar Equipos (Teams)',
+        'eliminar_teams': 'Eliminar Teams del Tenant',
+        'aprovisionar_grupos': 'Aprovisionar Estudiantes a Grupos',
+        'vincular_grupos': 'Vincular Estudiantes a Grupos',
+        'crear_teams_con_owners': 'Crear Equipos de Teams con Owners'  # ✅ NUEVA ACCIÓN
     }
             
-    return render_template('upload.html', accion=accion, titulo=titulos[accion])
+    return render_template('upload.html', accion=accion, titulo=titulos.get(accion, 'Acción desconocida'))
 
 def procesar_accion(accion, filepath):
+    """Procesa la acción seleccionada"""
     resultados = {}
     
     if accion == 'crear':
@@ -104,6 +118,23 @@ def procesar_accion(accion, filepath):
         vaciador = VaciadorEquipos()
         resultados = vaciador.procesar(filepath, confirmacion=False)
         
+    elif accion == 'aprovisionar_grupos':        
+        gestor = GestorAprovisionamientoGruposSimplificado() 
+        resultados = gestor.procesar(filepath)  
+        
+    elif accion == 'vincular_grupos':
+        vinculador = VinculadorEstudiantesGrupos()
+        resultados = vinculador.ejecutar(filepath)
+    
+    # ✅ CAMBIO IMPORTANTE: Agregar elif para crear_teams_con_owners
+    elif accion == 'crear_teams_con_owners':
+        creador = CreadorEquiposTeamsMultipleOwners()
+        resultados = creador.ejecutar(filepath)
+    
+    elif accion == 'eliminar_teams':
+        eliminador = EliminadorTeams()
+        resultados = eliminador.procesar(filepath, confirmacion=False)
+           
     return resultados
 
 @app.route('/logs')
@@ -152,7 +183,6 @@ def descargar_inventario():
     except Exception as e:
         flash(f"Error crítico: {str(e)}", "error")
         return redirect(url_for('index'))
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
