@@ -95,8 +95,12 @@ class CreadorEquiposTeamsMultipleOwners:
 
     def cargar_archivo(self, ruta_archivo: str) -> pd.DataFrame:
         """Carga Excel - Detecta automáticamente la hoja"""
+        print(f"DEBUG: Cargando archivo desde: {ruta_archivo}")
         try:
-            if ruta_archivo.endswith(".xlsx"):
+            if not ruta_archivo:
+                raise ValueError("Ruta de archivo vacía")
+            ruta_lower = ruta_archivo.lower()
+            if ruta_lower.endswith(".xlsx"):
                 try:
                     df = pd.read_excel(ruta_archivo, sheet_name="Grupos de Estudio", dtype=str)
                     print("✅ Hoja 'Grupos de Estudio' encontrada")
@@ -121,10 +125,10 @@ class CreadorEquiposTeamsMultipleOwners:
                     if df is None:
                         raise ValueError("Todas las hojas están vacías")
             
-            elif ruta_archivo.endswith(".csv"):
+            elif ruta_lower.endswith(".csv"):
                 df = pd.read_csv(ruta_archivo, dtype=str, encoding="utf-8")
             else:
-                raise ValueError("Formato no soportado")
+                raise ValueError(f"Formato no soportado: {os.path.basename(ruta_archivo)}")
             
             df.columns = df.columns.str.strip()
             df = df.fillna("")
@@ -306,11 +310,17 @@ class CreadorEquiposTeamsMultipleOwners:
             response = requests.post(url, json=body, headers=headers, verify=False, timeout=30)
             
             if response.status_code == 202:
-                print(f"    ✅ Clonado: {display_name}")
-                time.sleep(2)
-                team_id = self.obtener_team_id_por_nombre(display_name)
-                self.teams_existentes[display_name] = "cloning"
-                return True, team_id, "Clonado"
+                print(f"    ✅ Clonación iniciada: {display_name}")
+                # Esperar agresivamente a que el Team sea visible por la API
+                for i in range(5): # Intentar hasta 5 veces (aprox 25 segundos)
+                    print(f"       ⏳ Esperando a que el Team esté listo (intento {i+1}/5)...")
+                    time.sleep(5)
+                    team_id = self.obtener_team_id_por_nombre(display_name, forzar_refresco=True)
+                    if team_id and len(team_id) > 10: # Asegurar que es un GUID y no un placeholder
+                        self.teams_existentes[display_name] = team_id
+                        return True, team_id, "Clonado"
+                
+                return True, None, "Clonado (Pendiente de Propagación)"
             
             elif response.status_code == 400:
                 error_detail = response.json().get('error', {}).get('message', '')
@@ -324,7 +334,7 @@ class CreadorEquiposTeamsMultipleOwners:
         except Exception as e:
             return False, None, f"Error: {str(e)[:50]}"
 
-    def obtener_team_id_por_nombre(self, display_name: str) -> str or None:
+    def obtener_team_id_por_nombre(self, display_name: str, forzar_refresco: bool = False) -> str or None:
         """Obtiene el ID del Team por su nombre"""
         if not self.token:
             return None
@@ -335,9 +345,12 @@ class CreadorEquiposTeamsMultipleOwners:
         }
         
         try:
-            if display_name in self.teams_existentes:
-                return self.teams_existentes[display_name]
+            if not forzar_refresco and display_name in self.teams_existentes:
+                id_existente = self.teams_existentes[display_name]
+                if id_existente and len(id_existente) > 10:
+                    return id_existente
             
+            # Buscamos en el tenant
             url = f"{config.GRAPH_ENDPOINT}/groups?$filter=displayName eq '{display_name}'&$select=id"
             response = requests.get(url, headers=headers, verify=False, timeout=10)
             
@@ -490,8 +503,8 @@ class CreadorEquiposTeamsMultipleOwners:
             
             else:
                 # PASO 2: AGREGAR MÚLTIPLES OWNERS - CORREGIDO
-                if team_id:
-                    print(f"    🔐 Agregando owners...")
+                if team_id and len(str(team_id)) > 10:
+                    print(f"    🔐 Agregando owners al equipo {team_id}...")
                     
                     # DOCENTE (siempre se agrega)
                     if self.agregar_owner_individual(team_id, doc):
@@ -594,44 +607,102 @@ class CreadorEquiposTeamsMultipleOwners:
         except Exception as e:
             print(f"❌ Error guardando log: {e}")
 
-    def ejecutar(self, ruta_archivo: str) -> dict:
-        """Proceso principal"""
-        print("\n" + "="*70)
-        print("🏫 CREADOR DE TEAMS CON MÚLTIPLES OWNERS")
-        print("="*70)
+    def ejecutar(self, ruta_archivo: str):
+        """Proceso principal - GENERADOR para progreso en tiempo real"""
+        # Yield inicial
+        yield {"status": "info", "message": "Iniciando proceso de clonación...", "progress": 0}
         
         try:
             if not self.team_fuente_id:
-                raise Exception(
-                    "❌ ID del Team Fuente NO configurado\n"
-                    "Por favor, agrega a .env:\n"
-                    "TEAM_FUENTE_ID=eb1887ba-4fed-4f74-bc55-a0a8fdd7c4f0"
-                )
+                raise Exception("ID del Team Fuente NO configurado")
             
             if not self.obtener_token():
                 raise Exception("No se pudo obtener token")
             
+            yield {"status": "info", "message": "Escaneando teams existentes...", "progress": 5}
             self.obtener_todos_teams_existentes()
             
             df = self.cargar_archivo(ruta_archivo)
-            
             columnas = self.detectar_columnas(df)
             
             if not self.validar_datos(df, columnas['Equipo'], columnas['Docente']):
-                raise Exception("Validación fallida")
+                raise Exception("Validación de datos fallida")
             
-            self.procesar(df, columnas)
+            # --- PROCESAMIENTO ---
+            total = len(df)
+            col_eq = columnas.get('Equipo')
+            col_doc = columnas.get('Docente')
+            col_grupo = columnas.get('Grupo')
+            col_asignatura = columnas.get('Asignatura')
+            col_grado = columnas.get('Grado')
+            col_coord_sec = columnas.get('CoordinadorSeccion')
+            col_cuenta_acad = columnas.get('CuentaAcademica')
+            col_owner3 = columnas.get('Owner3')
+            col_owner4 = columnas.get('Owner4')
             
+            # Procesar cada fila del Excel
+            for index, row in df.iterrows():
+                team_name = str(row[col_eq]).strip()
+                doc = str(row[col_doc]).strip()
+                
+                percent = int(10 + (index / total) * 85)
+                yield {"status": "process", "message": f"[{index+1}/{total}] Procesando: {team_name}", "progress": percent}
+
+                team_id = None
+                msg_clonacion = ""
+
+                # --- PASO 1: VERIFICAR SI YA EXISTE ---
+                if team_name in self.teams_existentes_labels:
+                    yield {"status": "log", "message": f"🔍 {team_name} ya existe. Verificando configuration..."}
+                    team_id = self.obtener_team_id_por_nombre(team_name)
+                    msg_clonacion = "Ya existe (verificado)"
+                    self.resultados["equipos_ya_existentes"] += 1
+                else:
+                    # --- PASO 2: CLONACIÓN (Solo si no existe) ---
+                    yield {"status": "log", "message": f"🚀 Clonando equipo: {team_name}..."}
+                    description = f"{str(row[col_asignatura]).strip() if col_asignatura else ''} - {str(row[col_grado]).strip() if col_grado else ''} {str(row[col_grupo]).strip() if col_grupo else ''}".strip()
+                    exito, team_id_o_cloning, msg = self.clonar_team(team_name, description, doc)
+                    
+                    if not exito:
+                        yield {"status": "error", "message": f"❌ Error: {msg}"}
+                        self.resultados["errores"].append(f"{team_name}: {msg}")
+                        continue
+                    
+                    team_id = team_id_o_cloning
+                    msg_clonacion = msg
+                    self.resultados["creados_exitosamente"] += 1
+                
+                # --- PASO 3: ASEGURAR OWNERS (Para equipos nuevos y existentes) ---
+                if team_id:
+                    # Recopilar todos los potenciales owners de la fila
+                    potenciales = [doc]
+                    if col_coord_sec and self.es_valor_valido(row[col_coord_sec]): potenciales.append(str(row[col_coord_sec]).strip())
+                    if col_cuenta_acad and self.es_valor_valido(row[col_cuenta_acad]): potenciales.append(str(row[col_cuenta_acad]).strip())
+                    if col_owner3 and self.es_valor_valido(row[col_owner3]): potenciales.append(str(row[col_owner3]).strip())
+                    if col_owner4 and self.es_valor_valido(row[col_owner4]): potenciales.append(str(row[col_owner4]).strip())
+                    
+                    owners_agregados_equipo = 0
+                    for email in potenciales:
+                        if self.agregar_owner_individual(team_id, email):
+                            owners_agregados_equipo += 1
+                            self.resultados["total_owners_agregados"] += 1
+                    
+                    if owners_agregados_equipo > 0:
+                        yield {"status": "log", "message": f"   🔐 Owners actualizados: +{owners_agregados_equipo}"}
+                
+                self.resultados["equipos_procesados"].append({"Equipo": team_name, "Docente": doc, "Resultado": msg_clonacion})
+                time.sleep(0.5)
+
+            yield {"status": "info", "message": "Finalizando y guardando logs...", "progress": 98}
             self.mostrar_resumen()
-            
             self.guardar_logs()
             
-            return self.resultados
+            yield {"status": "complete", "message": "Proceso finalizado con éxito", "progress": 100, "results": self.resultados}
         
         except Exception as e:
-            print(f"❌ Error: {e}")
+            yield {"status": "error", "message": str(e)}
             self.resultados["errores"].append(str(e))
-            return self.resultados
+            yield {"status": "complete", "results": self.resultados}
 
 
 

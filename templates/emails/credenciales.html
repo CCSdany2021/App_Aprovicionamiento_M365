@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .info-box {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background-color: #f8fafc;
+        }
+
+        .warning-box {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background-color: #fff7ed;
+            border-left: 4px solid #f97316;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #1e3a8a;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        h2,
+        h3 {
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="color: #1e3a8a;">🔐 Credenciales de Acceso - Cuenta Institucional</h2>
+
+        <p>Estimado(a) <strong>{{ nombre_aspirante }}</strong>,</p>
+
+        <p>
+            Se ha creado tu cuenta institucional de Microsoft 365. A continuación encontrarás
+            tus credenciales de acceso:
+        </p>
+
+        <div class="info-box" style="background-color: #dbeafe;">
+            <h3 style="margin-top: 0; color: #1e3a8a;">📧 Datos de Acceso:</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li><strong>Correo Institucional:</strong></li>
+                <li style="font-size: 18px; color: #1e3a8a; font-weight: bold; margin: 10px 0;">{{ email_institucional
+                    }}</li>
+
+                <li style="margin-top: 20px;"><strong>Contraseña Temporal:</strong></li>
+                <li
+                    style="font-size: 18px; color: #dc2626; font-weight: bold; margin: 10px 0; font-family: 'Courier New', monospace; background: #fee2e2; padding: 10px; border-radius: 5px;">
+                    {{ password_temporal }}
+                </li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h3 style="margin-top: 0;">⚠️ IMPORTANTE - Primer Inicio de Sesión:</h3>
+            <ol>
+                <li>Ingresa a <a href="https://office.com" style="color: #1e3a8a; font-weight: bold;">office.com</a>
+                </li>
+                <li>Usa tu correo institucional: <strong>{{ email_institucional }}</strong></li>
+                <li>Ingresa la contraseña temporal mostrada arriba</li>
+                <li><strong style="color: #dc2626;">El sistema te pedirá cambiar la contraseña</strong></li>
+                <li>Crea una contraseña segura que solo tú conozcas</li>
+            </ol>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">📱 Servicios Disponibles:</h3>
+            <p>Con tu cuenta institucional tendrás acceso a:</p>
+            <ul>
+                <li>💻 <strong>Plataforma institucional con Microsoft 365</strong></li>
+                <li>📧 <strong>Outlook:</strong> Correo electrónico institucional</li>
+                <li>📝 <strong>Word, Excel, PowerPoint:</strong> Office Online</li>
+            </ul>
+        </div>
+
+        <div class="warning-box" style="background-color: #fee2e2; border-left-color: #dc2626;">
+            <h3 style="margin-top: 0; color: #dc2626;">🔒 Seguridad:</h3>
+            <ul>
+                <li><strong>NUNCA</strong> compartas tu contraseña con nadie</li>
+                <li>Si olvidas tu contraseña, contacta al administrador de sistemas</li>
+            </ul>
+        </div>
+
+        <p style="margin-top: 25px; text-align: center;">
+            <a href="https://office.com" class="btn">🚀 Iniciar Sesión en Office 365</a>
+        </p>
+
+        <p style="margin-top: 25px;">
+            Si tienes problemas para acceder o necesitas ayuda, escribe a:
+            <a href="mailto:soportecnico@calasanzsuba.edu.co"
+                style="color: #1e3a8a;">soportecnico@calasanzsuba.edu.co</a>
+            Indicando el código del estudiante para agilizar tu solicitud.
+        </p>
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #64748b;">
+            <strong>Coordinador TIC</strong><br>
+            Colegio San José de Calasanz
+        </p>
+    </div>
+</body>
+
+</html>

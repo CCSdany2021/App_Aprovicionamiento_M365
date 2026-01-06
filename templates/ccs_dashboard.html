@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block header %}Gestión de Reenvíos CCS{% endblock %}
+
+{% block content %}
+<div class="ccs-container">
+    <div class="info-card">
+        <div class="info-icon">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+        <div class="info-text">
+            <h2>Proceso de Reglas de Reenvío Masivo</h2>
+            <p>Este módulo permite configurar automáticamente el redireccionamiento de correos desde el buzón del
+                estudiante hacia sus acudientes.</p>
+        </div>
+    </div>
+
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <!-- Tarjeta de Descarga -->
+        <div class="card card-featured" style="border-color: var(--secondary-color);">
+            <div class="card-badge" style="background: var(--secondary-color); color: var(--primary-color);">Paso 1
+            </div>
+            <div class="card-icon">
+                <i class="fa-solid fa-file-excel"></i>
+            </div>
+            <h3>Descargar Plantilla Excel</h3>
+            <p>Obtén el formato oficial (.xlsx) para cargar los datos de los padres.</p>
+            <a href="{{ url_for('descargar_plantilla_reenvio') }}" class="btn btn-primary btn-full"
+                style="background: var(--secondary-color); border-color: var(--secondary-color); color: var(--primary-color);">
+                Descargar Plantilla <i class="fa-solid fa-download"></i>
+            </a>
+        </div>
+
+        <!-- Tarjeta de Carga -->
+        <div class="card card-featured">
+            <div class="card-badge">Paso 2</div>
+            <div class="card-icon">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <h3>Subir y Procesar</h3>
+            <p>Sube el archivo completado para crear las reglas en Microsoft 365.</p>
+            <a href="{{ url_for('upload', accion='crear_reglas_reenvio') }}" class="btn btn-primary btn-full">
+                Subir Archivos <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="alert note" style="margin-top: 2rem;">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>
+            <strong>Importante:</strong> Este proceso requiere que la cuenta de administrador tenga permisos de
+            <em>Exchange Administrator</em> y sesión activa en el módulo de PowerShell.
+        </div>
+    </div>
+</div>
+
+<style>
+    .ccs-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .info-card {
+        display: flex;
+        align-items: center;
+        background: var(--white);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border-left: 5px solid var(--primary-color);
+    }
+
+    .info-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-right: 2rem;
+    }
+
+    .info-text h2 {
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .info-text p {
+        margin: 0.5rem 0 0;
+        color: var(--text-light);
+    }
+</style>
+{% endblock %}

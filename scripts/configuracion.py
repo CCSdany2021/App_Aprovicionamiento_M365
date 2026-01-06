@@ -30,10 +30,14 @@ class ConfiguracionM365:
         self.DEFAULT_USAGE_LOCATION = os.getenv('DEFAULT_USAGE_LOCATION', 'CO')
         self.DEFAULT_DEPARTMENT = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes')
         self.DEFAULT_JOB_TITLE = os.getenv('DEFAULT_JOB_TITLE', 'Estudiante')
+        self.DEFAULT_CITY = os.getenv('DEFAULT_CITY', 'Bogotá')
         
         # Licencias
         self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT')
         self.LICENSE_FACULTY = os.getenv('LICENSE_FACULTY')
+        
+        # Configuración de Email (Microsoft Graph API)
+        self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
         
         # Rutas de archivos
  
@@ -44,6 +48,10 @@ class ConfiguracionM365:
         self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', 'resultados')
         self.CARPETA_LOGS = os.getenv('CARPETA_LOGS', 'resultados/logs')
         
+        # Credenciales Admin
+        self.ADMIN_USER = os.getenv('ADMIN_USER', 'admin')
+        self.ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+
         # Logging
         self.LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
         self.LOG_FORMAT = os.getenv('LOG_FORMAT', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -60,6 +68,10 @@ class ConfiguracionM365:
             errores.append("CLIENT_SECRET no configurado")
         if not self.COLEGIO_DOMINIO:
             errores.append("COLEGIO_DOMINIO no configurado")
+            
+        # Validación opcional para SMTP si se desea que sea obligatorio
+        # if not self.SMTP_USER or not self.SMTP_PASSWORD:
+        #     errores.append("Configuración SMTP incompleta")
             
         if errores:
             raise ValueError(f"Errores de configuración: {', '.join(errores)}")

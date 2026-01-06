@@ -7,12 +7,13 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from scripts.configuracion import config
+from scripts.azure_auth_interactive import AzureInteractiveAuth
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class GestorAprovisionamientoGruposSimplificado:
-    """Gestor simplificado: Solo UPN + Curso_2026"""
+    """Gestor simplificado: Solo UPN + Curso_2026 (Usa Autenticación Interactiva)"""
     
     def __init__(self):
         """Inicializa el gestor"""
@@ -41,22 +42,12 @@ class GestorAprovisionamientoGruposSimplificado:
         }
     
     def obtener_token(self) -> bool:
-        """Obtiene token de acceso a Microsoft Graph API"""
-        url = f"https://login.microsoftonline.com/{config.TENANT_ID}/oauth2/v2.0/token"
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": config.CLIENT_ID,
-            "client_secret": config.CLIENT_SECRET,
-            "scope": "https://graph.microsoft.com/.default"
-        }
-        
+        """Obtiene token usando flujo interactivo (Usuario Admin)"""
         try:
-            response = requests.post(url, data=data, verify=False)
-            response.raise_for_status()
-            self.token = response.json()["access_token"]
-            print("✅ Token obtenido correctamente")
+            auth = AzureInteractiveAuth()
+            self.token = auth.get_token()
             return True
-        except requests.RequestException as e:
+        except Exception as e:
             print(f"❌ Error obteniendo token: {e}")
             self.resultados["errores"].append(f"Error de autenticación: {str(e)}")
             return False
@@ -95,13 +86,14 @@ class GestorAprovisionamientoGruposSimplificado:
         """
         posibles_upn = [
             'UserPrincipalName', 'UPN', 'Email', 'Mail', 'Correo',
-            'userprincipalname', 'upn', 'email', 'mail', 'correo'
+            'userprincipalname', 'upn', 'email', 'mail', 'correo',
+            'USERPRINCIPALNAME'
         ]
         
         posibles_curso = [
             'Curso_2026', 'Curso_Nuevo', 'Curso', 'CursoNuevo',
             'curso_2026', 'curso_nuevo', 'curso', 'grado',
-            'Grado_2026', 'NuevoCurso'
+            'Grado_2026', 'NuevoCurso', 'CURSO', 'GRADO'
         ]
         
         col_upn = None

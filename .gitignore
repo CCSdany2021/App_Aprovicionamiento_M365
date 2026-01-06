@@ -23,6 +23,11 @@ ENV/
 *.swo
 *~
 
+# Archivos de datos (Excel/CSV)
+archivos/*
+!archivos/plantillas/
+!archivos/.gitkeep
+
 # Archivos subidos y resultados (pueden contener datos sensibles)
 archivos_subidos/*
 !archivos_subidos/.gitkeep

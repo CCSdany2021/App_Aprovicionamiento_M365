@@ -1,100 +1,138 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión Estudiantes M365</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}">
+    <title>Automatización de Usuarios y Grupos M365</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}?v=2.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo-container">
-                <i class="fa-brands fa-microsoft fa-2x"></i>
-                <h1>Adminsitracion de usuarios y grupos M365</h1>
+        <!-- Header de todo el width -->
+        <header class="global-header">
+            <div class="header-left">
+                <h1><i class="fa-brands fa-microsoft"></i> Gestión Proceso de Automatización de Usuarios/Grupos M365
+                </h1>
             </div>
-            
-            <nav class="nav-menu">
-                <a href="{{ url_for('index') }}" class="nav-item">
-                    <i class="fa-solid fa-house"></i> Inicio
-                </a>
-                <a href="{{ url_for('dashboard') }}" class="nav-item">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard
-                </a>
-                <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
-                    <i class="fa-solid fa-user-plus"></i> Crear
-                </a>
-                <a href="{{ url_for('upload', accion='actualizar') }}" class="nav-item">
-                    <i class="fa-solid fa-user-pen"></i> Actualizar
-                </a>
-                <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
-                    <i class="fa-solid fa-user-xmark"></i> Eliminar
-                </a>
-                <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
-                    <i class="fa-solid fa-users-slash"></i> Vaciar Teams
-                </a>
-                <a href="{{ url_for('logs') }}" class="nav-item">
-                    <i class="fa-solid fa-file-lines"></i> Logs
-                </a>
-            </nav>
-            
-            <div class="user-info">
-                <p><i class="fa-solid fa-shield-halved"></i> Calasanz Suba</p>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <h2>{% block header %}Panel de Control{% endblock %}</h2>
+            <div class="header-right">
                 <div class="theme-toggle-container">
-                    <i class="fa-solid fa-sun" style="color: var(--text-light);"></i>
-                    <div class="theme-toggle" onclick="toggleTheme()">
+                    <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema">
                         <div class="theme-toggle-slider">
                             <i class="fa-solid fa-moon" id="theme-icon"></i>
                         </div>
                     </div>
-                    <i class="fa-solid fa-moon" style="color: var(--text-light);"></i>
                 </div>
-            </header>
-            
-            <div class="content-area">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="alert {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-                
-                {% block content %}{% endblock %}
+                <div class="user-badge">
+                    <i class="fa-solid fa-circle-user"></i> {{ session.get('user', 'Admin') }}
+                </div>
+                <div class="user-info">
+                    <p>Sistema de Aprovisionamiento M365</p>
+                    <strong>Dany Diaz - Coordinador TIC</strong>
+                </div>
             </div>
-        </main>
+        </header>
+
+        <div class="main-layout">
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <a href="{{ url_for('index') }}" class="nav-item">
+                        <i class="fa-solid fa-house"></i> Inicio
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="nav-item">
+                        <i class="fa-solid fa-chart-line"></i> Dashboard
+                    </a>
+                    <div class="nav-category">Aprovisionamiento</div>
+                    <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
+                        <i class="fa-solid fa-user-plus"></i> Crear Estudiantes
+                    </a>
+                    <a href="{{ url_for('upload', accion='actualizar') }}" class="nav-item">
+                        <i class="fa-solid fa-user-pen"></i> Actualizar Estudiantes
+                    </a>
+                    <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
+                        <i class="fa-solid fa-user-xmark"></i> Eliminar Estudiantes
+                    </a>
+
+                    <div class="nav-category">Microsoft Teams</div>
+                    <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="nav-item">
+                        <i class="fa-solid fa-people-group"></i> Crear Equipos
+                    </a>
+                    <a href="{{ url_for('sync_teams') }}" class="nav-item">
+                        <i class="fa-solid fa-rotate"></i> Sincronizar Teams
+                    </a>
+                    <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
+                        <i class="fa-solid fa-users-slash"></i> Vaciar Equipos
+                    </a>
+
+                    <div class="nav-category">Administración Local</div>
+                    <a href="{{ url_for('ccs_dashboard') }}" class="nav-item">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                        <span>Reglas de Reenvío CCS</span>
+                    </a>
+
+                    <div class="nav-category">Sistema</div>
+                    <a href="{{ url_for('logs') }}" class="nav-item">
+                        <i class="fa-solid fa-file-lines"></i> Logs
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="nav-item logout-link">
+                        <i class="fa-solid fa-right-from-bracket"></i> Salir
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <header class="top-bar">
+                    <h2>{% block header %}Panel de Control{% endblock %}</h2>
+                </header>
+
+                <div class="content-area">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                        <div class="alert {{ category }}">
+                            <i
+                                class="fa-solid {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }}"></i>
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+
+        <footer class="global-footer">
+            <p>Desarrollado por <span class="highlight">Dany Diaz</span> - Coordinador TIC Calasanz Suba &copy; 2026</p>
+        </footer>
     </div>
-    
+
     <script>
         // Load saved theme on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
         });
-        
+
         // Toggle theme function
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
         }
-        
+
         // Update icon based on theme
         function updateThemeIcon(theme) {
             const icon = document.getElementById('theme-icon');
@@ -104,4 +142,5 @@
         }
     </script>
 </body>
+
 </html>

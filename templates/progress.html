@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block header %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card" style="padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 id="statusTitle" style="margin: 0; color: var(--primary-color);">Iniciando...</h3>
+            <span id="progressPercent"
+                style="font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">0%</span>
+        </div>
+
+        <div
+            style="width: 100%; background-color: #f3f3f3; border-radius: 10px; height: 25px; margin-bottom: 2rem; overflow: hidden; border: 1px solid #ddd;">
+            <div id="progressBar"
+                style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); transition: width 0.4s ease; position: relative;">
+                <div
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent); background-size: 40px 40px; animation: move-stripes 2s linear infinite;">
+                </div>
+            </div>
+        </div>
+
+        <div id="consoleContainer"
+            style="background-color: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: 'Consolas', 'Monaco', monospace; height: 350px; overflow-y: auto; font-size: 0.9rem; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); line-height: 1.6;">
+            <div id="consoleOutput"></div>
+        </div>
+
+        <div id="summaryAlert"
+            style="display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 8px; background-color: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #27ae60;">
+            <p id="summaryText" style="margin: 0; font-weight: 500;"></p>
+        </div>
+
+        <div id="finishActions" style="display: none; margin-top: 2rem; justify-content: center; gap: 1rem;">
+            <a href="{{ proxima_ruta }}" class="btn btn-primary"
+                style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                Ir al Inicio <i class="fa-solid fa-home"></i>
+            </a>
+            <a href="{{ url_for('logs') }}" class="btn btn-primary">
+                Ver Reporte Detallado <i class="fa-solid fa-file-lines"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes move-stripes {
+        from {
+            background-position: 0 0;
+        }
+
+        to {
+            background-position: 40px 0;
+        }
+    }
+
+    .log-entry {
+        margin-bottom: 4px;
+        border-left: 3px solid transparent;
+        padding-left: 10px;
+    }
+
+    .log-info {
+        color: #3498db;
+        border-left-color: #3498db;
+    }
+
+    .log-success {
+        color: #2ecc71;
+        border-left-color: #2ecc71;
+    }
+
+    .log-warning {
+        color: #f1c40f;
+        border-left-color: #f1c40f;
+    }
+
+    .log-error {
+        color: #e74c3c;
+        border-left-color: #e74c3c;
+        font-weight: bold;
+    }
+
+    .log-process {
+        color: #9b59b6;
+        border-left-color: #9b59b6;
+    }
+</style>
+
+<script>
+    const eventSource = new EventSource("{{ endpoint | safe }}");
+    const consoleOutput = document.getElementById('consoleOutput');
+    const consoleContainer = document.getElementById('consoleContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const statusTitle = document.getElementById('statusTitle');
+    const finishActions = document.getElementById('finishActions');
+
+    function addLog(msg, type = 'info') {
+        const div = document.createElement('div');
+        div.className = `log-entry log-${type}`;
+
+        // Formatear timestamp simple
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ":" +
+            now.getMinutes().toString().padStart(2, '0') + ":" +
+            now.getSeconds().toString().padStart(2, '0');
+
+        div.innerHTML = `<span style="color: #666;">[${time}]</span> ${msg}`;
+        consoleOutput.appendChild(div);
+        consoleContainer.scrollTop = consoleContainer.scrollHeight;
+    }
+
+    eventSource.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        if (data.status === 'info' || data.status === 'process') {
+            statusTitle.innerText = data.message;
+            if (data.progress !== undefined) {
+                progressBar.style.width = data.progress + '%';
+                progressPercent.innerText = data.progress + '%';
+            }
+            addLog(data.message, data.status);
+        }
+        else if (data.status === 'log') {
+            addLog(data.message, 'success');
+        }
+        else if (data.status === 'warning') {
+            addLog(data.message, 'warning');
+        }
+        else if (data.status === 'error') {
+            statusTitle.innerText = "Error detectado";
+            statusTitle.style.color = "#e74c3c";
+            addLog(data.message, 'error');
+            progressBar.style.backgroundColor = "#e74c3c";
+        }
+        else if (data.status === 'complete') {
+            statusTitle.innerText = "Proceso Completado";
+            statusTitle.style.color = "#2ecc71";
+            progressBar.style.width = '100%';
+            progressPercent.innerText = '100%';
+            addLog("Proceso terminado correctamente.", 'success');
+
+            // Mostrar resumen si existe
+            if (data.results) {
+                const res = data.results;
+                let summary = "";
+                if (res.total) summary += `Procesados: ${res.total} | Exitosos: ${res.creados_exitosamente || res.estudiantes_vinculados || 0}`;
+                if (res.total_owners_agregados) summary += ` | Owners: ${res.total_owners_agregados}`;
+                if (res.errores && res.errores.length > 0) summary += ` | Errores: ${res.errores.length}`;
+
+                document.getElementById('summaryText').innerText = summary;
+                document.getElementById('summaryAlert').style.display = 'block';
+            }
+
+            finishActions.style.display = 'flex';
+            eventSource.close();
+        }
+    };
+
+    eventSource.onerror = function (err) {
+        console.error("EventSource failed:", err);
+        addLog("Conexión perdida con el servidor. El proceso podría seguir ejecutándose en segundo plano.", 'warning');
+        eventSource.close();
+    };
+</script>
+{% endblock %}

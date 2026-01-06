@@ -11,6 +11,7 @@ import sys
 # Añadir la carpeta scripts al path para importar configuración
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from scripts.configuracion import config
+from scripts.notificador_email import NotificadorEmail
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -26,8 +27,10 @@ class CreadorEstudiantes:
             "creados": 0,
             "licenciados": 0,
             "errores": 0,
+            "correos_enviados": 0,
             "detalles_errores": []
         }
+        self.notificador = NotificadorEmail()
         
     def obtener_token(self) -> bool:
         """Obtiene token de acceso a Microsoft Graph API"""
@@ -60,6 +63,8 @@ class CreadorEstudiantes:
             "Content-Type": "application/json"
         }
 
+        password_temporal = "TempPass2025!" # Podrías generar una dinámica si quieres
+        
         # Datos del estudiante usando configuración
         user_data = {
             "accountEnabled": True,
@@ -68,14 +73,14 @@ class CreadorEstudiantes:
             "userPrincipalName": f"{estudiante['CODIGO']}@{config.COLEGIO_DOMINIO}",
             "passwordProfile": {
                 "forceChangePasswordNextSignIn": True,
-                "password": "TempPass2024!"  # Contraseña temporal
+                "password": password_temporal
             },
             "givenName": estudiante["NOMBRES"],
             "surname": estudiante["APELLIDOS"],
             "jobTitle": estudiante["CURSO"],
             "department": config.DEFAULT_DEPARTMENT,
             "usageLocation": config.DEFAULT_USAGE_LOCATION,
-            "city": "Bogotá"
+            "city": config.DEFAULT_CITY
         }
 
         try:
@@ -152,16 +157,44 @@ class CreadorEstudiantes:
         except Exception as e:
             raise Exception(f"❌ Error leyendo archivo: {e}")
     
-    def validar_datos(self, df: pd.DataFrame) -> bool:
-        """Valida que el DataFrame tenga las columnas necesarias"""
-        columnas_requeridas = ["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES"]
-        columnas_faltantes = [col for col in columnas_requeridas if col not in df.columns]
+    def detectar_columnas(self, df: pd.DataFrame) -> dict:
+        """Detecta las columnas necesarias de forma flexible"""
+        mapeo = {
+            "CODIGO": ["CODIGO", "Codigo", "Cod", "ID"],
+            "DOCUMENTO": ["DOCUMENTO", "Documento", "Doc", "Cedula"],
+            "GRADO": ["GRADO", "Grado"],
+            "CURSO": ["CURSO", "Curso"],
+            "APELLIDOS": ["APELLIDOS", "Apellidos", "Apellido"],
+            "NOMBRES": ["NOMBRES", "Nombres", "Nombre"],
+            "CORREO_PERSONAL": ["CORREO_PERSONAL", "CORREO_PEROSNAL", "Email_Personal", "Correo_Personal", "Correo", "Email"]
+        }
         
-        if columnas_faltantes:
-            print(f"❌ Faltan columnas requeridas: {columnas_faltantes}")
+        columnas_encontradas = {}
+        for clave, opciones in mapeo.items():
+            for opcion in opciones:
+                # Búsqueda insensible a mayúsculas/minúsculas y espacios
+                for col in df.columns:
+                    if col.strip().upper() == opcion.upper():
+                        columnas_encontradas[clave] = col
+                        break
+                if clave in columnas_encontradas:
+                    break
+        
+        return columnas_encontradas
+
+    def validar_datos(self, df: pd.DataFrame) -> bool:
+        """Valida que el DataFrame tenga las columnas necesarias detectadas"""
+        columnas_detectadas = self.detectar_columnas(df)
+        columnas_requeridas = ["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES", "CORREO_PERSONAL"]
+        
+        faltantes = [col for col in columnas_requeridas if col not in columnas_detectadas]
+        
+        if faltantes:
+            print(f"❌ No se pudieron detectar las columnas: {faltantes}")
+            print(f"Columnas disponibles en el archivo: {list(df.columns)}")
             return False
         
-        print("✅ Datos válidos")
+        print(f"✅ Columnas detectadas correctamente: {list(columnas_detectadas.values())}")
         return True
 
     def procesar_estudiantes(self, ruta_archivo: str = None, confirmacion: bool = True) -> dict:
@@ -183,16 +216,18 @@ class CreadorEstudiantes:
             print(f"📁 Procesando archivo: {ruta_archivo}")
             print("="*50)
             
-            # Cargar y validar datos
+            # Cargar y detectar columnas
             df = self.cargar_archivo(ruta_archivo)
             if not self.validar_datos(df):
                 return self.resultados
             
+            columnas = self.detectar_columnas(df)
             self.resultados["total"] = len(df)
             
             # Mostrar vista previa
+            cols_preview = [columnas[c] for c in ["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES"]]
             print("\n📋 Vista previa de estudiantes:")
-            print(df[["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES"]].head())
+            print(df[cols_preview].head())
             
             if confirmacion:
                 # Confirmación
@@ -205,12 +240,18 @@ class CreadorEstudiantes:
             if not self.obtener_token():
                 return self.resultados
             
+            # Pasar token al notificador para no pedirlo de nuevo
+            self.notificador.token = self.token
+            
             # Procesar estudiantes
             print(f"\n🚀 Iniciando creación de {len(df)} estudiantes...")
             print("="*50)
             
-            for index, estudiante in df.iterrows():
+            for index, row in df.iterrows():
                 try:
+                    # Mapear datos de la fila usando las columnas detectadas
+                    estudiante = {clave: str(row[col_nombre]).strip() for clave, col_nombre in columnas.items()}
+                    
                     print(f"\n📝 Procesando {index + 1}/{len(df)}: {estudiante['CODIGO']}")
                     
                     # Crear estudiante
@@ -220,6 +261,14 @@ class CreadorEstudiantes:
                         # Asignar licencia
                         if self.asignar_licencia(estudiante['CODIGO']):
                             self.resultados["licenciados"] += 1
+                            
+                            # Enviar correo de credenciales
+                            nombre_completo = f"{estudiante['NOMBRES']} {estudiante['APELLIDOS']}"
+                            upn = f"{estudiante['CODIGO']}@{config.COLEGIO_DOMINIO}"
+                            correo_personal = estudiante['CORREO_PERSONAL']
+                            
+                            if self.notificador.enviar_credenciales(correo_personal, nombre_completo, upn, "TempPass2025!"):
+                                self.resultados["correos_enviados"] += 1
                     else:
                         self.resultados["errores"] += 1
                         
@@ -249,6 +298,7 @@ class CreadorEstudiantes:
         print(f"📊 Total procesados: {self.resultados['total']}")
         print(f"✅ Estudiantes creados: {self.resultados['creados']}")
         print(f"🎯 Licencias asignadas: {self.resultados['licenciados']}")
+        print(f"📧 Correos enviados: {self.resultados['correos_enviados']}")
         print(f"❌ Errores: {self.resultados['errores']}")
         
         if self.resultados['errores'] > 0:

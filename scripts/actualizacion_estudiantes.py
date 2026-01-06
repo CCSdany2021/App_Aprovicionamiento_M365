@@ -62,10 +62,10 @@ class ActualizadorEstudiantes:
 
         # Datos a actualizar usando configuración
         datos_actualizacion = {
-            "displayName": f"Estudiante - {estudiante['CURSO']}: {estudiante['NOMBRES']} {estudiante['APELLIDOS']}",
+            "displayName": f"Estudiante - {estudiante['CURSO']}: {estudiante['APELLIDOS']} {estudiante['NOMBRES']}",
             "jobTitle": estudiante["CURSO"],
             "department": config.DEFAULT_DEPARTMENT,
-            "city": "Bogotá",
+            "city": config.DEFAULT_CITY,
             "givenName": estudiante["NOMBRES"],
             "surname": estudiante["APELLIDOS"]
         }
