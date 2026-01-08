@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
-{% block header %}Resultados del Proceso{% endblock %}
+{% block header %}Resultados del Proceso    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="stats-grid">
+<div style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: calc(100vh - 200px); 
+    width: 100%;
+    margin-bottom: 2rem;
+">
+    <div style="width: 100%; max-width: 1000px;">
+        <div class="stats-grid">
     <div class="stat-card">
         <span class="stat-number">{{ resultados.get('total', 0) }}</span>
         <span class="stat-label">Total Procesados</span>
@@ -244,5 +256,6 @@ resultados.errores) %}
         <i class="fa-solid fa-house"></i> Ir al Inicio
     </a>
 </div>
-
+    </div>
+</div>
 {% endblock %}

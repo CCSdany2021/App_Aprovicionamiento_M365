@@ -3,7 +3,14 @@
 {% block header %}{{ titulo }}{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
+<div style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px); 
+    width: 100%;
+">
+    <div style="max-width: 800px; width: 100%;">
     <div class="card">
         <form method="POST" enctype="multipart/form-data" id="uploadForm">
             <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">

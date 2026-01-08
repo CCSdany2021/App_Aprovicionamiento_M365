@@ -3,8 +3,19 @@
 {% block header %}{{ titulo }}{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
-    <div class="card" style="padding: 2rem;">
+<div style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px); /* Ajuste aproximado restando header/footer */
+    width: 100%;
+">
+    <div class="card" style="
+        padding: 2rem; 
+        width: 100%; 
+        max-width: 900px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    ">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 id="statusTitle" style="margin: 0; color: var(--primary-color);">Iniciando...</h3>
             <span id="progressPercent"
@@ -33,10 +44,10 @@
 
         <div id="finishActions" style="display: none; margin-top: 2rem; justify-content: center; gap: 1rem;">
             <a href="{{ proxima_ruta }}" class="btn btn-primary"
-                style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                style="background-color: #3b82f6; border-color: #3b82f6; color: white;">
                 Ir al Inicio <i class="fa-solid fa-home"></i>
             </a>
-            <a href="{{ url_for('logs') }}" class="btn btn-primary">
+            <a href="{{ url_for('logs') }}" class="btn btn-secondary">
                 Ver Reporte Detallado <i class="fa-solid fa-file-lines"></i>
             </a>
         </div>

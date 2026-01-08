@@ -415,6 +415,92 @@ class EliminadorTeams:
             return self.resultados
 
 
+    def ejecutar(self, ruta_archivo: str, confirmacion: bool = False):
+        """Procesa la eliminación de Teams (MODO GENERADOR) para streaming web"""
+        yield {"status": "info", "message": "Iniciando proceso de eliminación de Teams...", "progress": 0}
+
+        try:
+             # 1. Obtener lista de Teams a eliminar
+            yield {"status": "info", "message": f"Cargando y analizando archivo: {os.path.basename(ruta_archivo)}", "progress": 5}
+            
+            # Cargamos DF y detectamos columna (lógica interna de obtener_lista_equipos_a_eliminar adaptada)
+            df = self.cargar_archivo(ruta_archivo)
+            col_identificador = self.detectar_columna_identificador(df)
+            
+            # Obtener token
+            if not self.obtener_token():
+                yield {"status": "error", "message": "No se pudo obtener token de M365"}
+                return
+
+            equipos_a_eliminar = []
+            yield {"status": "info", "message": "Buscando Teams en el tenant...", "progress": 10}
+            
+            total_busqueda = len(df[col_identificador].dropna())
+            
+            # Fase 1: Búsqueda
+            for idx, identificador in enumerate(df[col_identificador], 1):
+                identificador = str(identificador).strip()
+                if not identificador:
+                    continue
+                
+                # Progreso de búsqueda (10% a 40%)
+                prog_busq = 10 + int((idx / total_busqueda) * 30)
+                yield {"status": "process", "message": f"Buscando: {identificador}", "progress": prog_busq}
+                
+                team = self.buscar_team(identificador)
+                
+                if team:
+                    equipos_a_eliminar.append({
+                        "Identificador": identificador,
+                        "GroupId": team["GroupId"],
+                        "DisplayName": team["DisplayName"],
+                        "Mail": team["Mail"],
+                        "Status": "Encontrado"
+                    })
+                    self.resultados["encontrados"] += 1
+                    yield {"status": "log", "message": f"✅ Encontrado: {team['DisplayName']}"}
+                else:
+                     self.resultados["no_encontrados"] += 1
+                     yield {"status": "warning", "message": f"⚠️ No encontrado: {identificador}"}
+
+            self.resultados["total"] = total_busqueda
+            
+            # Filtrar encontrados
+            equipos_encontrados = [e for e in equipos_a_eliminar if e.get("Status") == "Encontrado"]
+            
+            if not equipos_encontrados:
+                 yield {"status": "error", "message": "No se encontraron Teams válidos para eliminar"}
+                 return
+
+            total_eliminar = len(equipos_encontrados)
+            yield {"status": "info", "message": f"Eliminando {total_eliminar} Teams encontrados...", "progress": 40}
+            
+            # Fase 2: Eliminación
+            for idx, equipo in enumerate(equipos_encontrados, 1):
+                # Progreso eliminación (40% a 95%)
+                prog_elim = 40 + int((idx / total_eliminar) * 55)
+                yield {"status": "process", "message": f"Eliminando: {equipo['DisplayName']}", "progress": prog_elim}
+                
+                exito, mensaje = self.eliminar_team(equipo["GroupId"], equipo["DisplayName"])
+                
+                if exito:
+                    self.resultados["eliminados"] += 1
+                    self.resultados["equipos_eliminados"].append(equipo)
+                    yield {"status": "log", "message": f"✅ {mensaje}"}
+                else:
+                    self.resultados["errores"] += 1
+                    self.resultados["equipos_errores"].append({**equipo, "error": mensaje})
+                    yield {"status": "log", "message": f"❌ {mensaje}"}
+            
+            # Finalizar
+            yield {"status": "info", "message": "Guardando logs...", "progress": 98}
+            self.guardar_log()
+            
+            yield {"status": "complete", "message": "Proceso finalizado", "progress": 100, "results": self.resultados}
+
+        except Exception as e:
+            yield {"status": "error", "message": f"Error general: {e}"}
+
 def main():
     """Función principal para pruebas"""
     print("🗑️  ELIMINADOR DE TEAMS MICROSOFT 365")

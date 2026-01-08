@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block header %}Archivos de Resultados{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="width: 100%; text-align: left;">
+        <div class="alert note" style="margin-bottom: 2rem;">
+            <i class="fa-solid fa-folder-open"></i>
+            <div>
+                Aquí encontrarás los archivos generados por los procesos de actualización, creación y reportes.
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 1rem; text-align: left;">Nombre del Archivo</th>
+                    <th style="padding: 1rem; text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for archivo in archivos %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">
+                        <i class="fa-solid fa-file-excel" style="margin-right: 0.5rem; color: #107c41;"></i>
+                        {{ archivo }}
+                    </td>
+                    <td style="padding: 1rem; text-align: right;">
+                        <a href="{{ url_for('descargar_resultado', filename=archivo) }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                            <i class="fa-solid fa-download"></i> Descargar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                {% if not archivos %}
+                <tr>
+                    <td colspan="2" style="padding: 3rem; text-align: center; color: var(--text-light);">
+                        <i class="fa-solid fa-box-open" style="font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.3;"></i>
+                        No hay archivos de resultados disponibles
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

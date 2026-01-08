@@ -60,15 +60,40 @@ class ActualizadorEstudiantes:
 
         user_principal_name = f"{estudiante['CODIGO']}@{config.COLEGIO_DOMINIO}"
 
+        # Lógica inteligente: Si no vienen nombres/apellidos, los consultamos
+        if "NOMBRES" not in estudiante or "APELLIDOS" not in estudiante or not estudiante["NOMBRES"] or not estudiante["APELLIDOS"]:
+            try:
+                # Consultar usuario actual
+                print(f"   ℹ️ Consultando datos actuales para {estudiante['CODIGO']}...")
+                get_url = f"{config.GRAPH_ENDPOINT}/users/{user_principal_name}?$select=givenName,surname"
+                get_resp = requests.get(get_url, headers=headers, verify=False)
+                
+                if get_resp.status_code == 200:
+                    current_user = get_resp.json()
+                    estudiante["NOMBRES"] = current_user.get("givenName", "")
+                    estudiante["APELLIDOS"] = current_user.get("surname", "")
+                else:
+                    print(f"   ⚠️ No se pudieron obtener datos actuales: {get_resp.status_code}")
+                    # Fallback riesgoso o saltar
+            except Exception as e:
+                 print(f"   ⚠️ Error consultando datos actuales: {e}")
+
         # Datos a actualizar usando configuración
         datos_actualizacion = {
             "displayName": f"Estudiante - {estudiante['CURSO']}: {estudiante['APELLIDOS']} {estudiante['NOMBRES']}",
             "jobTitle": estudiante["CURSO"],
             "department": config.DEFAULT_DEPARTMENT,
-            "city": config.DEFAULT_CITY,
-            "givenName": estudiante["NOMBRES"],
-            "surname": estudiante["APELLIDOS"]
+            "city": config.DEFAULT_CITY
         }
+        
+        # Solo actualizar nombres si venían en el archivo (opcional, pero para consistencia del displayName los incluimos si cambiaron)
+        # En este caso, como reconstruimos el displayName, asumimos que esos son los nombres correctos.
+        # Si venían del archivo, actualizamos los campos individuales también.
+        if "NOMBRES" in estudiante and estudiante["NOMBRES"]:
+             datos_actualizacion["givenName"] = estudiante["NOMBRES"]
+        if "APELLIDOS" in estudiante and estudiante["APELLIDOS"]:
+             datos_actualizacion["surname"] = estudiante["APELLIDOS"]
+
 
         try:
             url = f"{config.GRAPH_ENDPOINT}/users/{user_principal_name}"
@@ -110,86 +135,91 @@ class ActualizadorEstudiantes:
             raise Exception(f"Error leyendo archivo: {e}")
 
     def validar_datos(self, df: pd.DataFrame) -> bool:
-        """Valida que el DataFrame tenga las columnas necesarias"""
-        columnas_requeridas = ["CODIGO", "CURSO", "NOMBRES", "APELLIDOS"]
+        """Valida que el DataFrame tenga las columnas mínimas necesarias"""
+        # Columnas mínimas para operar (aunque el template tenga más)
+        columnas_requeridas = ["CODIGO", "CURSO"]
+        
+        # Normalizar columnas del DF
+        df.columns = [c.strip().upper() for c in df.columns]
+        
         columnas_faltantes = [col for col in columnas_requeridas if col not in df.columns]
 
         if columnas_faltantes:
-            print(f"Faltan columnas requeridas: {columnas_faltantes}")
+            print(f"❌ Faltan columnas requeridas: {columnas_faltantes}")
             return False
         
-        print("Datos válidos")
+        print("✅ Datos válidos (Columnas detectadas)")
         return True
 
-    def procesar_actualizaciones(self, ruta_archivo: str = None, confirmacion: bool = True) -> dict:
-        """Procesa la actualización masiva de estudiantes
-        
-        Args:
-            ruta_archivo (str, optional): Ruta al archivo. Defaults to None.
-            confirmacion (bool, optional): Pedir confirmación. Defaults to True.
-            
-        Returns:
-            dict: Resultados del proceso
-        """
+    def ejecutar(self, ruta_archivo: str = None):
+        """Procesa la actualización masiva (MODO GENERADOR) para streaming web"""
+        yield {"status": "info", "message": "Iniciando proceso de actualización...", "progress": 0}
+
         try:
             # Usar archivo por defecto si no se especifica
             if not ruta_archivo:
-                ruta_archivo = config.ARCHIVO_ACTUALIZAR
+                raise ValueError("Se debe especificar un archivo para procesar")
             
-            print(f"Colegio: {config.COLEGIO_NOMBRE}")
-            print(f"Procesando archivo: {ruta_archivo}")
-            print("="*50)
+            yield {"status": "info", "message": f"Cargando archivo: {os.path.basename(ruta_archivo)}", "progress": 5}
             
             # Cargar y validar datos
             df = self.cargar_archivo(ruta_archivo)
             if not self.validar_datos(df):
-                return self.resultados
+                yield {"status": "error", "message": "El archivo no es válido (faltan columnas)"}
+                return
             
             self.resultados["total"] = len(df)
-            
-            # Mostrar vista previa
-            print("\nVista previa de estudiantes a actualizar:")
-            print(df[["CODIGO", "CURSO", "NOMBRES", "APELLIDOS"]].head())
-            
-            if confirmacion:
-                # Confirmación
-                respuesta = input(f"\n¿Actualizar {len(df)} estudiantes en {config.COLEGIO_NOMBRE}? (si/no): ").lower()
-                if respuesta not in ['si', 's', 'yes', 'y']:
-                    print("Operación cancelada")
-                    return self.resultados
+            yield {"status": "info", "message": f"Se encontraron {len(df)} estudiantes para actualizar", "progress": 10}
             
             # Obtener token
             if not self.obtener_token():
-                return self.resultados
+                yield {"status": "error", "message": "No se pudo obtener token de M365"}
+                return
             
             # Procesar actualizaciones
-            print(f"\nIniciando actualización de {len(df)} estudiantes...")
-            print("="*50)
+            total = len(df)
             
             for index, estudiante in df.iterrows():
                 try:
-                    print(f"\nProcesando {index + 1}/{len(df)}: {estudiante['CODIGO']}")
+                    # Progreso base 15% hasta 95%
+                    progress = 15 + int((index / total) * 80)
+                    
+                    yield {"status": "process", "message": f"Procesando: {estudiante['CODIGO']}", "progress": progress}
                     
                     if self.actualizar_estudiante(estudiante):
                         self.resultados["actualizados"] += 1
+                        yield {"status": "log", "message": f"✅ Estudiante actualizado: {estudiante['CODIGO']}"}
                     else:
                         self.resultados["errores"] += 1
+                        yield {"status": "log", "message": f"❌ Error actualizando {estudiante['CODIGO']}"}
                         
                 except Exception as e:
                     error_msg = f"Error procesando {estudiante.get('CODIGO', 'desconocido')}: {e}"
-                    print(f"{error_msg}")
                     self.resultados["detalles_errores"].append(error_msg)
                     self.resultados["errores"] += 1
+                    yield {"status": "log", "message": f"❌ {error_msg}"}
             
-            # Mostrar resumen
-            self.mostrar_resumen()
+            # Finalizar
+            yield {"status": "info", "message": "Guardando logs...", "progress": 98}
             self.guardar_log()
             
-            return self.resultados
+            yield {"status": "complete", "message": "Proceso finalizado", "progress": 100, "results": self.resultados}
             
         except Exception as e:
-            print(f"Error general: {e}")
-            return self.resultados
+             yield {"status": "error", "message": f"Error general del proceso: {e}"}
+
+    def procesar_actualizaciones(self, ruta_archivo: str = None, confirmacion: bool = True) -> dict:
+        """Wrapper para mantener compatibilidad con modo consola consumiendo el generador"""
+        # Si es modo web directo (sin stream) o consola
+        gen = self.ejecutar(ruta_archivo)
+        for update in gen:
+            if update['status'] == 'log':
+                print(update['message'])
+            elif update['status'] == 'info':
+                 print(f"INFO: {update['message']}")
+            elif update['status'] == 'error':
+                 print(f"ERROR: {update['message']}")
+        return self.resultados
 
     def mostrar_resumen(self):
         """Muestra resumen de la operación"""
@@ -244,14 +274,13 @@ def main():
     try:
         actualizador = ActualizadorEstudiantes()
         
-        # Usar archivo por defecto o solicitar ruta
-        usar_default = input(f"\n¿Usar archivo por defecto '{config.ARCHIVO_ACTUALIZAR}'? (si/no): ").lower()
+        # Solicitar ruta del archivo
+        ruta_archivo = input("Ruta del archivo: ").strip()
         
-        if usar_default in ['si', 's', 'yes', 'y']:
-            actualizador.procesar_actualizaciones()
+        if ruta_archivo:
+             actualizador.procesar_actualizaciones(ruta_archivo)
         else:
-            ruta_archivo = input("Ruta del archivo: ").strip()
-            actualizador.procesar_actualizaciones(ruta_archivo)
+             print("Debes especificar un archivo")
             
     except KeyboardInterrupt:
         print("\nProceso interrumpido por el usuario")

@@ -652,8 +652,8 @@ class CreadorEquiposTeamsMultipleOwners:
                 msg_clonacion = ""
 
                 # --- PASO 1: VERIFICAR SI YA EXISTE ---
-                if team_name in self.teams_existentes_labels:
-                    yield {"status": "log", "message": f"🔍 {team_name} ya existe. Verificando configuration..."}
+                if team_name in self.teams_existentes:
+                    yield {"status": "log", "message": f"🔍 {team_name} ya existe. Verificando configuración..."}
                     team_id = self.obtener_team_id_por_nombre(team_name)
                     msg_clonacion = "Ya existe (verificado)"
                     self.resultados["equipos_ya_existentes"] += 1

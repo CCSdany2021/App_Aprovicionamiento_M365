@@ -68,7 +68,7 @@ class CreadorEstudiantes:
         # Datos del estudiante usando configuración
         user_data = {
             "accountEnabled": True,
-            "displayName": f"Estudiante - {estudiante['CURSO']}: {estudiante['NOMBRES']} {estudiante['APELLIDOS']}",
+            "displayName": f"Estudiante - {estudiante['CURSO']}: {estudiante['APELLIDOS']} {estudiante['NOMBRES']}",
             "mailNickname": estudiante["CODIGO"],
             "userPrincipalName": f"{estudiante['CODIGO']}@{config.COLEGIO_DOMINIO}",
             "passwordProfile": {
@@ -161,7 +161,6 @@ class CreadorEstudiantes:
         """Detecta las columnas necesarias de forma flexible"""
         mapeo = {
             "CODIGO": ["CODIGO", "Codigo", "Cod", "ID"],
-            "DOCUMENTO": ["DOCUMENTO", "Documento", "Doc", "Cedula"],
             "GRADO": ["GRADO", "Grado"],
             "CURSO": ["CURSO", "Curso"],
             "APELLIDOS": ["APELLIDOS", "Apellidos", "Apellido"],
@@ -185,7 +184,7 @@ class CreadorEstudiantes:
     def validar_datos(self, df: pd.DataFrame) -> bool:
         """Valida que el DataFrame tenga las columnas necesarias detectadas"""
         columnas_detectadas = self.detectar_columnas(df)
-        columnas_requeridas = ["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES", "CORREO_PERSONAL"]
+        columnas_requeridas = ["CODIGO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES", "CORREO_PERSONAL"]
         
         faltantes = [col for col in columnas_requeridas if col not in columnas_detectadas]
         
@@ -197,114 +196,103 @@ class CreadorEstudiantes:
         print(f"✅ Columnas detectadas correctamente: {list(columnas_detectadas.values())}")
         return True
 
-    def procesar_estudiantes(self, ruta_archivo: str = None, confirmacion: bool = True) -> dict:
-        """Procesa la creación masiva de estudiantes
+    def ejecutar(self, ruta_archivo: str = None) -> dict:
+        """Procesa la creación masiva de estudiantes (MODO GENERADOR)"""
+        yield {"status": "info", "message": "Iniciando proceso de creación...", "progress": 0}
         
-        Args:
-            ruta_archivo (str, optional): Ruta al archivo a procesar. Defaults to None.
-            confirmacion (bool, optional): Si True, pide confirmación por consola. Si False, ejecuta directamente. Defaults to True.
-            
-        Returns:
-            dict: Resultados del proceso
-        """
         try:
             # Usar archivo por defecto si no se especifica
             if not ruta_archivo:
-                ruta_archivo = config.ARCHIVO_NUEVOS
+                raise ValueError("Se debe especificar un archivo para procesar")
+
             
-            print(f"🏫 Colegio: {config.COLEGIO_NOMBRE}")
-            print(f"📁 Procesando archivo: {ruta_archivo}")
-            print("="*50)
+            yield {"status": "info", "message": f"Cargando archivo: {os.path.basename(ruta_archivo)}", "progress": 5}
             
             # Cargar y detectar columnas
             df = self.cargar_archivo(ruta_archivo)
             if not self.validar_datos(df):
-                return self.resultados
+                yield {"status": "error", "message": "El archivo no tiene las columnas necesarias"}
+                return
             
             columnas = self.detectar_columnas(df)
             self.resultados["total"] = len(df)
             
-            # Mostrar vista previa
-            cols_preview = [columnas[c] for c in ["CODIGO", "DOCUMENTO", "GRADO", "CURSO", "APELLIDOS", "NOMBRES"]]
-            print("\n📋 Vista previa de estudiantes:")
-            print(df[cols_preview].head())
-            
-            if confirmacion:
-                # Confirmación
-                respuesta = input(f"\n¿Crear {len(df)} estudiantes en {config.COLEGIO_NOMBRE}? (si/no): ").lower()
-                if respuesta not in ['si', 's', 'yes', 'y']:
-                    print("❌ Operación cancelada")
-                    return self.resultados
+            yield {"status": "info", "message": f"Se encontraron {len(df)} estudiantes para procesar", "progress": 10}
             
             # Obtener token
             if not self.obtener_token():
-                return self.resultados
+                yield {"status": "error", "message": "No se pudo obtener el token de Microsoft Graph"}
+                return
             
-            # Pasar token al notificador para no pedirlo de nuevo
+            # Pasar token al notificador
             self.notificador.token = self.token
             
             # Procesar estudiantes
-            print(f"\n🚀 Iniciando creación de {len(df)} estudiantes...")
-            print("="*50)
+            total = len(df)
             
             for index, row in df.iterrows():
                 try:
-                    # Mapear datos de la fila usando las columnas detectadas
-                    estudiante = {clave: str(row[col_nombre]).strip() for clave, col_nombre in columnas.items()}
+                    # Progreso base 15% hasta 95%
+                    progress = 15 + int((index / total) * 80)
                     
-                    print(f"\n📝 Procesando {index + 1}/{len(df)}: {estudiante['CODIGO']}")
+                    # Mapear datos
+                    estudiante = {clave: str(row[col_nombre]).strip() for clave, col_nombre in columnas.items()}
+                    nombre_completo = f"{estudiante['NOMBRES']} {estudiante['APELLIDOS']}"
+                    
+                    yield {"status": "process", "message": f"Procesando: {estudiante['CODIGO']} - {nombre_completo}", "progress": progress}
                     
                     # Crear estudiante
                     if self.crear_estudiante(estudiante):
                         self.resultados["creados"] += 1
+                        msg_log = f"✅ Usuario creado: {estudiante['CODIGO']}"
+                        yield {"status": "log", "message": msg_log}
                         
                         # Asignar licencia
                         if self.asignar_licencia(estudiante['CODIGO']):
                             self.resultados["licenciados"] += 1
+                            msg_lic = f"   🏷️ Licencia asignada"
+                            yield {"status": "log", "message": msg_lic}
                             
-                            # Enviar correo de credenciales
-                            nombre_completo = f"{estudiante['NOMBRES']} {estudiante['APELLIDOS']}"
+                            # Enviar correo
                             upn = f"{estudiante['CODIGO']}@{config.COLEGIO_DOMINIO}"
                             correo_personal = estudiante['CORREO_PERSONAL']
                             
                             if self.notificador.enviar_credenciales(correo_personal, nombre_completo, upn, "TempPass2025!"):
                                 self.resultados["correos_enviados"] += 1
+                                yield {"status": "log", "message": f"   📧 Correo enviado a {correo_personal}"}
+                            else:
+                                yield {"status": "log", "message": f"   ⚠️ Correo NO enviado (Verificar .env)"}
                     else:
                         self.resultados["errores"] += 1
+                        yield {"status": "log", "message": f"❌ Error creando {estudiante['CODIGO']}"}
                         
                 except Exception as e:
                     error_msg = f"Error procesando {estudiante.get('CODIGO', 'desconocido')}: {e}"
-                    print(f"❌ {error_msg}")
                     self.resultados["detalles_errores"].append(error_msg)
                     self.resultados["errores"] += 1
+                    yield {"status": "log", "message": f"❌ {error_msg}"}
             
-            # Mostrar resumen
-            self.mostrar_resumen()
+            # Guardar log y finalizar
+            yield {"status": "info", "message": "Guardando logs...", "progress": 98}
             self.guardar_log()
             
-            return self.resultados
+            yield {"status": "complete", "message": "Proceso finalizado", "progress": 100, "results": self.resultados}
             
         except Exception as e:
-            print(f"❌ Error general: {e}")
-            return self.resultados
+            yield {"status": "error", "message": f"Error general: {e}"}
+            return
 
-    def mostrar_resumen(self):
-        """Muestra resumen de la operación"""
-        print("\n" + "="*60)
-        print("📊 RESUMEN DEL PROCESO")
-        print("="*60)
-        print(f"🏫 Colegio: {config.COLEGIO_NOMBRE}")
-        print(f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"📊 Total procesados: {self.resultados['total']}")
-        print(f"✅ Estudiantes creados: {self.resultados['creados']}")
-        print(f"🎯 Licencias asignadas: {self.resultados['licenciados']}")
-        print(f"📧 Correos enviados: {self.resultados['correos_enviados']}")
-        print(f"❌ Errores: {self.resultados['errores']}")
-        
-        if self.resultados['errores'] > 0:
-            print(f"\n📝 Detalles de errores guardados en: {config.CARPETA_LOGS}")
-        
-        print("="*60)
+    def procesar_estudiantes(self, ruta_archivo: str = None, confirmacion: bool = True) -> dict:
+        """Wrapper para mantener compatibilidad con modo consola si es necesario, consumiendo el generador"""
+        gen = self.ejecutar(ruta_archivo)
+        for update in gen:
+            if update['status'] == 'log':
+                print(update['message'])
+            elif update['status'] == 'complete':
+                return update['results']
+            elif update['status'] == 'error':
+                print(f"ERROR: {update['message']}")
+        return self.resultados
 
     def guardar_log(self):
         """Guarda log del proceso"""
@@ -344,14 +332,13 @@ def main():
     try:
         creador = CreadorEstudiantes()
         
-        # Usar archivo por defecto o solicitar ruta
-        usar_default = input(f"\n¿Usar archivo por defecto '{config.ARCHIVO_NUEVOS}'? (si/no): ").lower()
-        
-        if usar_default in ['si', 's', 'yes', 'y']:
-            creador.procesar_estudiantes()
+        # Solicitar ruta del archivo
+        ruta_archivo = input("📁 Ruta del archivo: ").strip()
+        if ruta_archivo:
+             creador.procesar_estudiantes(ruta_archivo)
         else:
-            ruta_archivo = input("📁 Ruta del archivo: ").strip()
-            creador.procesar_estudiantes(ruta_archivo)
+             print("❌ Debes especificar un archivo")
+
             
     except KeyboardInterrupt:
         print("\n❌ Proceso interrumpido por el usuario")

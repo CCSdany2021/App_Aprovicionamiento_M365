@@ -44,6 +44,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $PackageName = "Education_SecondaryStudent"
+$MessagingPolicyName = "Estudiantes_Bloqueo_Chat" # Política que DEBE existir en el Tenant
 $CarpetaLogs = "resultados\logs"
 
 # Crear carpeta de logs si no existe
@@ -243,11 +244,22 @@ foreach ($Estudiante in $Estudiantes) {
     Write-Host "[$Contador/$Total] Procesando: $UPN" -NoNewline
 
     try {
-        # Asignar paquete de políticas
+        # 1. Asignar paquete de políticas (Base)
         Grant-CsUserPolicyPackage -Identity $UPN -PackageName $PackageName -ErrorAction Stop
+        
+        # 2. Asignar política de mensajería restrictiva (Bloqueo de Chat)
+        try {
+            Grant-CsTeamsMessagingPolicy -Identity $UPN -PolicyName $MessagingPolicyName -ErrorAction Stop
+            Write-Host " 🔒" -NoNewline -ForegroundColor Green
+        }
+        catch {
+             $Msg = $_.Exception.Message
+             Write-Host " ⚠️ (Chat)" -NoNewline -ForegroundColor Yellow
+             Write-Log "[$Contador/$Total] ⚠️ Advertencia asignando política de chat ($MessagingPolicyName): $Msg" -Nivel "WARNING"
+        }
 
         Write-Host " ✅" -ForegroundColor Green
-        Write-Log "[$Contador/$Total] ✅ Política asignada: $UPN" -Nivel "SUCCESS"
+        Write-Log "[$Contador/$Total] ✅ Políticas asignadas (Pack + Chat): $UPN" -Nivel "SUCCESS"
         $Exitosos++
 
         $ResultadosDetallados += [PSCustomObject]@{

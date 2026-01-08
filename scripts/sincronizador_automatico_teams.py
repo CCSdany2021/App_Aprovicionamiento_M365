@@ -13,14 +13,19 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class SincronizadorAutomaticoTeams:
     """Sincroniza estudiantes directamente desde el Tenant a sus equipos de Teams"""
     
-    def __init__(self, departamento_filtro="Estudiantes 2026"):
+    def __init__(self, departamento_filtro=None):
         try:
             config.validar_configuracion()
         except:
             pass
         
         self.token = None
-        self.departamento_filtro = departamento_filtro
+        # Obtener variable de entorno si no se pasa argumento
+        default_dept = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes 2027')
+        self.departamento_filtro = departamento_filtro if departamento_filtro else default_dept
+        
+        print(f"DEBUG: Sincronizador inicializado con Departamento='{self.departamento_filtro}'")
+        
         self.teams_encontrados = []
         
         self.resultados = {
@@ -87,36 +92,56 @@ class SincronizadorAutomaticoTeams:
             self.resultados["errores"].append(f"Error obteniendo teams: {str(e)}")
             return False
 
-    def obtener_estudiantes_del_tenant(self) -> list:
-        """Obtiene todos los usuarios del departamento especificado"""
-        if not self.token:
-            return []
-            
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json",
-            "ConsistencyLevel": "eventual" # Requerido para algunos filtros avanzados
-        }
-        
+
+    def _consultar_usuarios_por_filtro(self, filtro, headers):
+        """Helper para consultar usuarios paginados"""
         estudiantes = []
-        # Filtramos por departamento
-        url = f"{config.GRAPH_ENDPOINT}/users?$filter=department eq '{self.departamento_filtro}'&$select=id,userPrincipalName,jobTitle,displayName&$top=999"
+        url = f"{config.GRAPH_ENDPOINT}/users?{filtro}&$select=id,userPrincipalName,jobTitle,displayName&$top=999"
         
-        print(f"🔍 Buscando estudiantes en el departamento: {self.departamento_filtro}")
-        
+        while url:
+            response = requests.get(url, headers=headers, verify=False, timeout=20)
+            if response.status_code == 200:
+                data = response.json()
+                estudiantes.extend(data.get('value', []))
+                url = data.get('@odata.nextLink')
+            else:
+                break
+        return estudiantes
+
+    def obtener_estudiantes_del_tenant(self) -> list:
+        """Obtiene todos los usuarios (Intento inteligente Singular/Plural)"""
         try:
-            while url:
-                response = requests.get(url, headers=headers, verify=False, timeout=20)
-                if response.status_code == 200:
-                    data = response.json()
-                    estudiantes.extend(data.get('value', []))
-                    url = data.get('@odata.nextLink')
-                else:
-                    print(f"❌ Error en consulta de usuarios: {response.status_code}")
-                    break
+            if not self.token: return []
+                
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+                "ConsistencyLevel": "eventual"
+            }
+            
+            # 1. Intento original
+            filtro_original = f"$filter=department eq '{self.departamento_filtro}'"
+            print(f"🔍 Buscando estudiantes: '{self.departamento_filtro}'")
+            estudiantes = self._consultar_usuarios_por_filtro(filtro_original, headers)
+            
+            # 2. Intento Plural/Singular si falló
+            if not estudiantes:
+                alternativa = ""
+                if self.departamento_filtro.lower().startswith("estudiante "):
+                    alternativa = self.departamento_filtro.replace("Estudiante ", "Estudiantes ")
+                elif self.departamento_filtro.lower().startswith("estudiantes "):
+                    alternativa = self.departamento_filtro.replace("Estudiantes ", "Estudiante ")
+                
+                if alternativa:
+                    print(f"⚠️ No encontrados. Probando alternativa: '{alternativa}'")
+                    filtro_alt = f"$filter=department eq '{alternativa}'"
+                    estudiantes = self._consultar_usuarios_por_filtro(filtro_alt, headers)
+                    if estudiantes:
+                        print(f"✅ ¡Encontrados con '{alternativa}'!")
+                        self.departamento_filtro = alternativa # Actualizamos para log
             
             self.resultados["total_estudiantes_tenant"] = len(estudiantes)
-            print(f"✅ {len(estudiantes)} estudiantes encontrados en el tenant")
+            print(f"✅ {len(estudiantes)} estudiantes totales encontrados")
             return estudiantes
         except Exception as e:
             self.resultados["errores"].append(f"Error obteniendo estudiantes: {str(e)}")

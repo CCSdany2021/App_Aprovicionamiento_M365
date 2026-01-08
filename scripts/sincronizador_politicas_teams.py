@@ -16,9 +16,17 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class SincronizadorPoliticasTeams:
     """Sincroniza paquetes de políticas de Teams (automático o manual)"""
     
-    def __init__(self, departamento_filtro="Estudiantes 2026"):
+    def __init__(self, departamento_filtro=None):
+        try:
+            config.validar_configuracion()
+        except:
+            pass
+        
         self.token = None
-        self.departamento_filtro = departamento_filtro
+        # Obtener variable de entorno si no se pasa argumento
+        default_dept = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes 2027')
+        self.departamento_filtro = departamento_filtro if departamento_filtro else default_dept
+        
         self.package_student = "Education_SecondaryStudent"
         self.ps_script_path = os.path.join(os.path.dirname(__file__), 'powershell', 'Asignar-PoliticasEstudiantes.ps1')
         
@@ -48,14 +56,11 @@ class SincronizadorPoliticasTeams:
         except Exception as e:
             return False
 
-    def obtener_estudiantes_del_tenant(self) -> list:
-        """Obtiene UPNs de estudiantes del departamento especificado"""
-        if not self.obtener_token():
-            return []
-            
+    def _consultar_usuarios(self, filtro):
+        """Helper paginado"""
         headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
         estudiantes = []
-        url = f"{config.GRAPH_ENDPOINT}/users?$filter=department eq '{self.departamento_filtro}'&$select=userPrincipalName&$top=999"
+        url = f"{config.GRAPH_ENDPOINT}/users?{filtro}&$select=userPrincipalName&$top=999"
         
         try:
             while url:
@@ -68,6 +73,33 @@ class SincronizadorPoliticasTeams:
             return estudiantes
         except:
             return []
+
+    def obtener_estudiantes_del_tenant(self) -> list:
+        """Obtiene UPNs con búsqueda inteligente"""
+        if not self.obtener_token():
+            return []
+            
+        # 1. Intento original
+        filtro = f"$filter=department eq '{self.departamento_filtro}'"
+        print(f"🔍 Buscando políticas para: '{self.departamento_filtro}'")
+        estudiantes = self._consultar_usuarios(filtro)
+        
+        # 2. Intento Plural/Singular si falló
+        if not estudiantes:
+            alternativa = ""
+            if self.departamento_filtro.lower().startswith("estudiante "):
+                alternativa = self.departamento_filtro.replace("Estudiante ", "Estudiantes ")
+            elif self.departamento_filtro.lower().startswith("estudiantes "):
+                alternativa = self.departamento_filtro.replace("Estudiantes ", "Estudiante ")
+            
+            if alternativa:
+                 print(f"⚠️ Probando alternativa: '{alternativa}'")
+                 filtro_alt = f"$filter=department eq '{alternativa}'"
+                 estudiantes = self._consultar_usuarios(filtro_alt)
+                 if estudiantes:
+                     self.departamento_filtro = alternativa
+        
+        return estudiantes
 
     def ejecutar(self, filepath=None):
         """Generador para streaming SSE. Si filepath es None, hace escaneo automático."""

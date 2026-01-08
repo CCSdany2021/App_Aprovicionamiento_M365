@@ -22,11 +22,13 @@
 
 /* Dark Theme */
 [data-theme="dark"] {
-    --primary-color: #ffbf00; /* Amarillo prominente en modo oscuro */
+    --primary-color: #ffbf00;
+    /* Amarillo prominente en modo oscuro */
     --secondary-color: #153459;
     --background-color: #0F172A;
     --white: #1E293B;
-    --card-bg: #1E293B;
+    --card-bg: #153459;
+    /* Azul corporativo solicitado */
     --text-color: #F1F5F9;
     --text-light: #94A3B8;
     --danger: #F87171;
@@ -38,6 +40,16 @@
     --user-info-bg: #0F172A;
     --hover-bg: rgba(242, 145, 27, 0.2);
     --icon-bg: rgba(242, 145, 27, 0.1);
+}
+
+[data-theme="dark"] .nav-item {
+    color: #E2E8F0;
+    /* Mucho más claro para contraste en sidebar oscura */
+}
+
+[data-theme="dark"] .card h3 {
+    color: #FFFFFF !important;
+    /* Títulos blancos en modo oscuro */
 }
 
 
@@ -74,17 +86,16 @@ body {
     width: 100%;
     background-color: var(--primary-color);
     color: var(--white);
-    padding: 0.6rem 1.5rem;
+    padding: 0.4rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: var(--shadow-sm);
     z-index: 20;
-    min-height: 50px;
 }
 
 .global-header h1 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     letter-spacing: -0.01em;
 }
@@ -92,7 +103,7 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 /* Sidebar */
@@ -155,6 +166,11 @@ body {
     background-color: rgba(239, 68, 68, 0.1) !important;
 }
 
+/* Ocultar User Info en Header para reducir altura */
+.header-right .user-info {
+    display: none;
+}
+
 .user-badge {
     background-color: rgba(255, 255, 255, 0.1);
     padding: 0.5rem 1rem;
@@ -199,10 +215,12 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
+    margin-top: 2rem;
+    /* Separación superior añadida */
 }
 
 .card {
-    background-color: var(--white);
+    background-color: var(--card-bg);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -225,7 +243,8 @@ body {
 .card-icon {
     width: 70px;
     height: 70px;
-    background-color: rgba(21, 52, 89, 0.05);
+    background-color: #FFFFFF;
+    /* Fondo blanco para resaltar icono */
     /* Primary muy suave */
     border-radius: 50%;
     display: flex;
@@ -287,25 +306,61 @@ body {
     display: block;
 }
 
-.card-danger { border-color: rgba(239, 68, 68, 0.2); }
-.card-danger .card-icon { color: var(--danger); background: rgba(239, 68, 68, 0.05); }
-.card-danger:hover { border-color: var(--danger); }
+.card-danger {
+    border-color: rgba(239, 68, 68, 0.2);
+}
 
-.card-success { border-color: rgba(16, 185, 129, 0.2); }
-.card-success .card-icon { color: var(--success); background: rgba(16, 185, 129, 0.05); }
-.card-success:hover { border-color: var(--success); }
+.card-danger .card-icon {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
 
-.card-warning { border-color: rgba(245, 158, 11, 0.2); }
-.card-warning .card-icon { color: #f59e0b; background: rgba(245, 158, 11, 0.05); }
-.card-warning:hover { border-color: #f59e0b; }
+.card-danger:hover {
+    border-color: var(--danger);
+}
 
-.card-accent { border-color: rgba(242, 145, 27, 0.2); }
-.card-accent .card-icon { color: var(--secondary-color); background: rgba(242, 145, 27, 0.05); }
-.card-accent:hover { border-color: var(--secondary-color); }
+.card-success {
+    border-color: rgba(16, 185, 129, 0.2);
+}
 
-.card-featured { 
-    border: 2px solid var(--secondary-color); 
-    position: relative; 
+.card-success .card-icon {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.card-success:hover {
+    border-color: var(--success);
+}
+
+.card-warning {
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.card-warning .card-icon {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.card-warning:hover {
+    border-color: #f59e0b;
+}
+
+.card-accent {
+    border-color: rgba(242, 145, 27, 0.2);
+}
+
+.card-accent .card-icon {
+    color: var(--secondary-color);
+    background: rgba(242, 145, 27, 0.05);
+}
+
+.card-accent:hover {
+    border-color: var(--secondary-color);
+}
+
+.card-featured {
+    border: 2px solid var(--secondary-color);
+    position: relative;
     overflow: hidden;
 }
 
@@ -322,10 +377,24 @@ body {
     text-transform: uppercase;
 }
 
-.btn-danger { background: var(--danger); color: white; }
-.btn-success { background: var(--success); color: white; }
-.btn-warning { background: #f59e0b; color: white; }
-.btn-full { width: 100%; }
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-full {
+    width: 100%;
+}
 
 .btn:hover {
     transform: translateY(-1px);

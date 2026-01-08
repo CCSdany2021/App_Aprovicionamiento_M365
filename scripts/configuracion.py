@@ -39,10 +39,7 @@ class ConfiguracionM365:
         # Configuración de Email (Microsoft Graph API)
         self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
         
-        # Rutas de archivos
- 
-        self.ARCHIVO_NUEVOS = os.getenv('ARCHIVO_NUEVOS', 'archivos/estudiantesNuevos_prueba.xlsx')
-        self.ARCHIVO_ACTUALIZAR = os.getenv('ARCHIVO_ACTUALIZAR', 'archivos/actualizacionEstudiantes.xlsx')
+
         
         # Carpetas
         self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', 'resultados')
