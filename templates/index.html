@@ -28,14 +28,14 @@ content %}
   </div>
 
   <!-- Eliminar Estudiantes -->
-  <div class="card">
-      <div class="card-icon" style="background-color: var(--danger); color: white;">
+  <div class="card card-danger">
+      <div class="card-icon">
         <i class="fa-solid fa-user-minus"></i>
       </div>
       <h3>Eliminar Estudiantes</h3>
       <p>Eliminar usuarios del tenant (irreversible).</p>
       <div style="display: flex; gap: 0.5rem; width: 100%;">
-        <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-primary" style="flex: 1; background-color: var(--danger);">Eliminar <i class="fa-solid fa-trash"></i></a>
+        <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-danger" style="flex: 1;">Eliminar <i class="fa-solid fa-trash"></i></a>
         <a href="{{ url_for('descargar_plantilla', tipo='eliminar') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
     </div>
   </div>
@@ -117,8 +117,8 @@ content %}
   </div>
 
   <!-- Sincronización Automática de Políticas -->
-  <div class="card card-featured" style="border-color: var(--secondary-color);">
-    <div class="card-badge" style="background: var(--secondary-color); color: var(--primary-color);">Seguridad EDU</div>
+  <div class="card card-featured">
+    <div class="card-badge">Seguridad EDU</div>
     <div class="card-icon">
       <i class="fa-solid fa-shield-halved"></i>
     </div>
@@ -126,8 +126,7 @@ content %}
     <p>Aplica automáticamente el paquete de políticas a estudiantes 2027.</p>
     <form action="{{ url_for('sync_policies') }}" method="POST"
       onsubmit="return confirm('¿Deseas aplicar las políticas de seguridad a todos los estudiantes detectados?')">
-      <button type="submit" class="btn btn-primary btn-full"
-        style="background: var(--secondary-color); border-color: var(--secondary-color); color: var(--primary-color);">
+      <button type="submit" class="btn btn-warning btn-full">
         Aplicar Políticas <i class="fa-solid fa-user-shield"></i>
       </button>
     </form>
