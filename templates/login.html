@@ -7,7 +7,8 @@
     <title>Login - Gestión M365</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}?v=2.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -16,28 +17,30 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #0f172a;
-            /* Base dark */
+            background-color: #f8fafc;
+            /* Base white/slate */
             background-image:
-                radial-gradient(at 0% 0%, rgba(21, 52, 89, 1) 0, transparent 50%),
-                radial-gradient(at 50% 0%, rgba(21, 52, 89, 0.5) 0, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(255, 191, 0, 0.15) 0, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.1) 0, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(255, 191, 0, 0.1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.1) 0, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.1) 0, transparent 50%);
             overflow: hidden;
             font-family: 'Inter', sans-serif;
             position: relative;
         }
 
         .login-card {
-            background: rgba(21, 52, 89, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 28px;
-            padding: 3rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 32px;
+            padding: 3.5rem 3rem;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            max-width: 440px;
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 20px 40px -8px rgba(0, 0, 0, 0.1);
             animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             z-index: 10;
@@ -46,7 +49,7 @@
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
 
             to {
@@ -57,69 +60,80 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
         }
 
         .login-header i {
             font-size: 3.5rem;
             color: #ffbf00;
-            margin-bottom: 1rem;
-            filter: drop-shadow(0 0 10px rgba(255, 191, 0, 0.3));
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 4px 6px rgba(255, 191, 0, 0.2));
         }
 
         .login-header h2 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: #fff;
+            font-size: 2.25rem;
+            margin-bottom: 0.75rem;
+            color: #0f172a;
             font-weight: 800;
-            letter-spacing: -0.025em;
+            letter-spacing: -0.05em;
         }
 
         .login-header p {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.95rem;
+            color: #64748b;
+            font-size: 1rem;
+            font-weight: 500;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
             position: relative;
         }
 
         .form-group i {
             position: absolute;
-            left: 1.2rem;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 1.1rem;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            transition: 0.3s;
         }
 
         .form-control {
             width: 100%;
-            padding: 1.1rem 1rem 1.1rem 3.5rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            color: #fff;
+            padding: 1.15rem 1rem 1.15rem 3.75rem;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            color: #1e293b;
             font-size: 1rem;
+            font-weight: 500;
             transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
         }
 
         .form-control:focus {
             outline: none;
             border-color: #ffbf00;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 0 4px rgba(255, 191, 0, 0.15);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 191, 0, 0.1);
+        }
+
+        .form-control:focus+i {
+            color: #ffbf00;
         }
 
         .btn-login {
             width: 100%;
-            padding: 1.1rem;
-            background: linear-gradient(135deg, #ffbf00, #ff9900);
-            color: #153459;
+            padding: 1.15rem;
+            background: #ffbf00;
+            color: #0f172a;
             border: none;
-            border-radius: 16px;
-            font-size: 1.05rem;
+            border-radius: 18px;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -128,36 +142,38 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(255, 191, 0, 0.2);
         }
 
         .btn-login:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 30px -5px rgba(255, 153, 0, 0.4);
+            background: #ffcc33;
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(255, 191, 0, 0.3);
         }
 
         .alert {
-            padding: 1.1rem;
-            border-radius: 16px;
-            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 18px;
+            margin-bottom: 2rem;
             text-align: center;
             font-size: 1rem;
-            font-weight: 500;
-            border: 1px solid transparent;
+            font-weight: 600;
+            border: 2px solid transparent;
         }
 
         .alert.error {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border-color: rgba(239, 68, 68, 0.3);
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fee2e2;
         }
 
         .background-blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
+            filter: blur(100px);
             z-index: 1;
-            opacity: 0.4;
-            animation: move 20s infinite alternate;
+            opacity: 0.6;
+            animation: move 25s infinite alternate;
         }
 
         @keyframes move {
@@ -166,8 +182,30 @@
             }
 
             to {
-                transform: translate(5%, 5%) scale(1.1);
+                transform: translate(10%, 10%) scale(1.2);
             }
+        }
+
+        .setup-link {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .setup-link:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            border-color: #cbd5e1;
         }
     </style>
 </head>
@@ -176,20 +214,17 @@
 
     <!-- Background Blobs -->
     <div class="background-blob"
-        style="width: 600px; height: 600px; top: -150px; left: -150px; background: radial-gradient(circle, rgba(21, 52, 89, 0.6) 0%, transparent 70%);">
+        style="width: 700px; height: 700px; top: -200px; left: -100px; background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);">
     </div>
     <div class="background-blob"
-        style="width: 500px; height: 500px; bottom: -100px; right: -100px; background: radial-gradient(circle, rgba(255, 191, 0, 0.15) 0%, transparent 70%); animation-delay: -5s;">
-    </div>
-    <div class="background-blob"
-        style="width: 400px; height: 400px; top: 40%; right: -50px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); animation-delay: -10s;">
+        style="width: 600px; height: 600px; bottom: -150px; right: -50px; background: radial-gradient(circle, rgba(255, 191, 0, 0.15) 0%, transparent 70%); animation-delay: -7s;">
     </div>
 
     <div class="login-card">
         <div class="login-header">
             <i class="fa-brands fa-microsoft"></i>
             <h2>Acceso Seguro</h2>
-            <p>Gestión de Aprovicionamiento de Estudiantes M365</p>
+            <p>Plataforma de Aprovicionamiento M365</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -202,28 +237,26 @@
 
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" name="username" class="form-control" placeholder="Usuario" required
+                <i class="fa-solid fa-user-tag"></i>
+                <input type="text" name="username" class="form-control" placeholder="Usuario de acceso" required
                     autocomplete="off">
             </div>
 
             <div class="form-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+                <i class="fa-solid fa-key"></i>
+                <input type="password" name="password" class="form-control" placeholder="Tu contraseña" required>
             </div>
 
             <button type="submit" class="btn-login">
-                Iniciar Sesión <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                Entrar al Panel <i class="fa-solid fa-arrow-right-long"></i>
             </button>
         </form>
 
-        <div
-            style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
-            <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 1rem;">¿Primera vez o nuevo
-                colegio?</p>
-            <a href="{{ url_for('setup', new=1) }}" class="btn-login"
-                style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); margin-top: 0;">
-                <i class="fa-solid fa-plus-circle"></i> Registrar Datos Nuevos
+        <div style="margin-top: 2.5rem; border-top: 2px solid #f1f5f9; padding-top: 2rem; text-align: center;">
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.25rem; font-weight: 500;">¿Configurando una
+                nueva instancia?</p>
+            <a href="{{ url_for('setup', new=1) }}" class="setup-link">
+                <i class="fa-solid fa-gear"></i> Configuración Inicial
             </a>
         </div>
     </div>
