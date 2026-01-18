@@ -3,40 +3,46 @@ content %}
 <div class="card-grid">
   <!-- Crear Estudiantes -->
   <div class="card">
-      <div class="card-icon">
-        <i class="fa-solid fa-user-plus"></i>
-      </div>
-      <h3>Crear Estudiantes</h3>
-      <p>Importar nuevos estudiantes masivamente desde Excel o CSV.</p>
-      <div style="display: flex; gap: 0.5rem; width: 100%;">
-          <a href="{{ url_for('upload', accion='crear') }}" class="btn btn-primary" style="flex: 1;">Iniciar <i class="fa-solid fa-arrow-right"></i></a>
-          <a href="{{ url_for('descargar_plantilla', tipo='crear') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
-      </div>
+    <div class="card-icon">
+      <i class="fa-solid fa-user-plus"></i>
+    </div>
+    <h3>Crear Estudiantes</h3>
+    <p>Importar nuevos estudiantes masivamente desde Excel o CSV.</p>
+    <div style="display: flex; gap: 0.5rem; width: 100%;">
+      <a href="{{ url_for('upload', accion='crear') }}" class="btn btn-primary" style="flex: 1;">Iniciar <i
+          class="fa-solid fa-arrow-right"></i></a>
+      <a href="{{ url_for('descargar_plantilla', tipo='crear') }}" class="btn btn-secondary"
+        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    </div>
   </div>
 
   <!-- Actualizar Estudiantes -->
   <div class="card">
-      <div class="card-icon">
-        <i class="fa-solid fa-user-pen"></i>
-      </div>
-      <h3>Actualizar Estudiantes</h3>
-      <p>Modifica atributos de Entra ID a estudiantes existentes en el tenant periodo 2027.</p>
-      <div style="display: flex; gap: 0.5rem; width: 100%;">
-          <a href="{{ url_for('upload', accion='actualizar') }}" class="btn btn-primary" style="flex: 1;">Actualizar <i class="fa-solid fa-arrow-right"></i></a>
-          <a href="{{ url_for('descargar_plantilla', tipo='actualizar') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
-      </div>
+    <div class="card-icon">
+      <i class="fa-solid fa-user-pen"></i>
+    </div>
+    <h3>Actualizar Estudiantes</h3>
+    <p>Modifica atributos de Entra ID a estudiantes existentes en el tenant periodo 2026.</p>
+    <div style="display: flex; gap: 0.5rem; width: 100%;">
+      <a href="{{ url_for('upload', accion='actualizar') }}" class="btn btn-primary" style="flex: 1;">Actualizar <i
+          class="fa-solid fa-arrow-right"></i></a>
+      <a href="{{ url_for('descargar_plantilla', tipo='actualizar') }}" class="btn btn-secondary"
+        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    </div>
   </div>
 
   <!-- Eliminar Estudiantes -->
   <div class="card card-danger">
-      <div class="card-icon">
-        <i class="fa-solid fa-user-minus"></i>
-      </div>
-      <h3>Eliminar Estudiantes</h3>
-      <p>Eliminar usuarios del tenant (irreversible).</p>
-      <div style="display: flex; gap: 0.5rem; width: 100%;">
-        <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-danger" style="flex: 1;">Eliminar <i class="fa-solid fa-trash"></i></a>
-        <a href="{{ url_for('descargar_plantilla', tipo='eliminar') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    <div class="card-icon">
+      <i class="fa-solid fa-user-minus"></i>
+    </div>
+    <h3>Eliminar Estudiantes</h3>
+    <p>Eliminar usuarios del tenant (irreversible).</p>
+    <div style="display: flex; gap: 0.5rem; width: 100%;">
+      <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-danger" style="flex: 1;">Eliminar <i
+          class="fa-solid fa-trash"></i></a>
+      <a href="{{ url_for('descargar_plantilla', tipo='eliminar') }}" class="btn btn-secondary"
+        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
     </div>
   </div>
 
@@ -95,7 +101,7 @@ content %}
         <i class="fa-solid fa-share-nodes"></i>
       </div>
       <h3>Aprovisionar a Grupos</h3>
-      <p>Asociar estudiantes a grupos según su curso 2027.</p>
+      <p>Asociar estudiantes a grupos según su curso 2026.</p>
       <span class="btn btn-primary">Aprovisionar <i class="fa-solid fa-check"></i></span>
     </div>
   </a>
@@ -107,7 +113,7 @@ content %}
       <i class="fa-solid fa-bolt"></i>
     </div>
     <h3>Sincronización Automática</h3>
-    <p>Mapea el tenant y vincula a estudiantes a equipos de Teams periodo 2027.</p>
+    <p>Mapea el tenant y vincula a estudiantes a equipos de Teams periodo 2026.</p>
     <form action="{{ url_for('sync_teams') }}" method="POST"
       onsubmit="return confirm('¿Estás seguro de iniciar la sincronización masiva de EQUIPOS?')">
       <button type="submit" class="btn btn-primary btn-full">
@@ -123,7 +129,7 @@ content %}
       <i class="fa-solid fa-shield-halved"></i>
     </div>
     <h3>Sincronizar Políticas Teams</h3>
-    <p>Aplica automáticamente el paquete de políticas a estudiantes 2027.</p>
+    <p>Aplica automáticamente el paquete de políticas a estudiantes 2026.</p>
     <form action="{{ url_for('sync_policies') }}" method="POST"
       onsubmit="return confirm('¿Deseas aplicar las políticas de seguridad a todos los estudiantes detectados?')">
       <button type="submit" class="btn btn-warning btn-full">
@@ -141,6 +147,18 @@ content %}
       <h3>Asignar Políticas (Manual)</h3>
       <p>Cargar archivo específico para asignar políticas a usuarios puntuales.</p>
       <span class="btn btn-primary">Subir Archivo <i class="fa-solid fa-arrow-up-from-bracket"></i></span>
+    </div>
+  </a>
+
+  <!-- Configuración del Sistema -->
+  <a href="{{ url_for('setup') }}" class="card-link">
+    <div class="card card-accent">
+      <div class="card-icon">
+        <i class="fa-solid fa-gears"></i>
+      </div>
+      <h3>Configuración del Sistema</h3>
+      <p>Modificar credenciales de Azure, nombre del colegio o periodo escolar.</p>
+      <span class="btn btn-primary">Configurar <i class="fa-solid fa-wrench"></i></span>
     </div>
   </a>
 

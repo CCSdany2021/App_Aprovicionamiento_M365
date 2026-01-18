@@ -23,8 +23,8 @@ class SincronizadorPoliticasTeams:
             pass
         
         self.token = None
-        # Obtener variable de entorno si no se pasa argumento
-        default_dept = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes 2027')
+        # Obtener periodo de la configuración dinámica
+        default_dept = f"Estudiantes {config.PERIODO_ACTUAL}"
         self.departamento_filtro = departamento_filtro if departamento_filtro else default_dept
         
         self.package_student = "Education_SecondaryStudent"
