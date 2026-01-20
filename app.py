@@ -25,6 +25,7 @@ from scripts.creador_equipos_teams_multiples_owners import CreadorEquiposTeamsMu
 from scripts.sincronizador_automatico_teams import SincronizadorAutomaticoTeams
 from scripts.sincronizador_politicas_teams import SincronizadorPoliticasTeams
 from scripts.creador_reglas_reenvio import CreadorReglasReenvio
+from scripts.gestor_configuracion import GestorConfiguracion
 
     
 app = Flask(__name__)
@@ -49,11 +50,22 @@ def login_required(f):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Manejo de inicio de sesión"""
+    from werkzeug.security import check_password_hash
+    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         
-        if username == config.ADMIN_USER and password == config.ADMIN_PASSWORD:
+        # Validar contra los valores cargados en config (que ya vienen de DB o .env)
+        es_usuario_valido = False
+        if username == config.ADMIN_USER:
+            if config.ADMIN_PASSWORD_HASH:
+                es_usuario_valido = check_password_hash(config.ADMIN_PASSWORD_HASH, password)
+            else:
+                # Fallback si no hay hash (solo para configuración inicial legacy)
+                es_usuario_valido = (password == config.ADMIN_PASSWORD)
+
+        if es_usuario_valido:
             session['logged_in'] = True
             session['user'] = username
             flash('Bienvenido al sistema', 'success')
@@ -61,7 +73,7 @@ def login():
         else:
             flash('Credenciales incorrectas', 'error')
             
-    return render_template('login.html')
+    return render_template('login.html', config_ready=config.TENANT_ID is not None)
 
 @app.route('/logout')
 def logout():
@@ -283,7 +295,7 @@ def stream_process():
             # Revertiré este cambio de "todos" a solo los soportados.
             pass
         elif accion == 'sync_teams':
-            objeto_proceso = SincronizadorAutomaticoTeams() # Usa default del .env ("Estudiante 2027")
+            objeto_proceso = SincronizadorAutomaticoTeams() # Usa default del .env ("Estudiante 2026")
             gen = objeto_proceso.ejecutar()
         elif accion == 'sync_policies':
             objeto_proceso = SincronizadorPoliticasTeams() # Usa default del .env y busqueda inteligente
@@ -442,6 +454,75 @@ def descargar_plantilla(tipo):
     except Exception as e:
         flash(f"Error generando plantilla: {e}", "error")
         return redirect(url_for('index'))
+
+@app.route('/setup', methods=['GET', 'POST'])
+def setup():
+    """Configuración del Tenant, Periodo y Admin (Premium Wizard)"""
+    # Si ya está configurado, requiere login. Si no, es de libre acceso (Primer Inicio).
+    # Permitimos acceso si se pasa ?new=1 para instalaciones nuevas/migraciones
+    is_configured = config.TENANT_ID is not None
+    is_new_request = request.args.get('new') == '1'
+    
+    if is_configured and not session.get('logged_in') and not is_new_request:
+        flash('Debes iniciar sesión para modificar la configuración existente.', 'warning')
+        return redirect(url_for('login'))
+
+    gestor = GestorConfiguracion()
+    
+    if request.method == 'POST':
+        try:
+            # Recopilar datos
+            nuevo_secreto = request.form.get('client_secret')
+            secreto_final = nuevo_secreto if nuevo_secreto else config.CLIENT_SECRET
+            
+            nueva_pass = request.form.get('admin_password')
+            
+            data = {
+                'tenant_id': request.form['tenant_id'],
+                'client_id': request.form['client_id'],
+                'client_secret': secreto_final,
+                'colegio_nombre': request.form['colegio_nombre'],
+                'colegio_dominio': request.form['colegio_dominio'],
+                'periodo_actual': request.form['periodo_actual'],
+                'admin_user': request.form.get('admin_user', 'admin'),
+                'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}")
+            }
+            
+            # Solo actualizar password si se ingresó uno nuevo
+            if nueva_pass:
+                data['admin_password'] = nueva_pass
+            else:
+                data['admin_password_hash'] = config.ADMIN_PASSWORD_HASH
+
+            # Acción de guardado
+            try:
+                # Asegurar esquema antes de guardar
+                gestor._inicializar_db()
+                gestor.guardar_configuracion(data)
+                
+                # Recargar configuración en memoria
+                config.__init__() 
+                
+                flash('¡Configuración guardada exitosamente! Ya puedes iniciar sesión.', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                msg = str(e)
+                if 'admin_user' in msg or 'no column named' in msg:
+                    error_es = "Se detectó que la base de datos necesitaba una actualización. El sistema ha intentado repararla automáticamente. Por favor, pulsa 'Finalizar y Guardar' nuevamente."
+                    try: gestor._inicializar_db()
+                    except: pass
+                elif 'client_id' in msg:
+                    error_es = "El ID de Cliente de Azure no parece ser válido. Por favor verifícalo."
+                else:
+                    error_es = f"No se pudo guardar la configuración: {msg}"
+                flash(error_es, 'error')
+                
+        except Exception as e:
+            flash(f"Error procesando el formulario: {str(e)}", "error")
+            
+    return render_template('setup.html', config=config, is_configured=is_configured)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

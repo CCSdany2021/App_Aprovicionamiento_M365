@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block header %}Configuración del Sistema{% endblock %}
+{% block content %}
+<style>
+    .setup-wizard {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding-bottom: 5rem;
+    }
+
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 1;
+    }
+
+    .step-item {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        flex: 1;
+    }
+
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--background-color);
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        color: var(--text-light);
+        transition: 0.3s;
+    }
+
+    .step-item.active .step-icon {
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+        box-shadow: 0 0 15px rgba(255, 191, 0, 0.2);
+    }
+
+    .step-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+
+    .step-item.active .step-label {
+        color: var(--text-color);
+    }
+
+    .wizard-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 1.5rem;
+        display: none;
+        animation: fadeIn 0.4s ease;
+        box-shadow: var(--shadow);
+    }
+
+    [data-theme="dark"] .wizard-section {
+        background: linear-gradient(145deg, #1e293b, #030a1c);
+    }
+
+    .wizard-section.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+
+    .section-title i {
+        font-size: 1.5rem;
+        color: var(--secondary-color);
+    }
+
+    .section-title h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .form-control-setup {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+
+    .form-control-setup:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        background: var(--white);
+    }
+
+    .wizard-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+
+    .btn-wizard {
+        padding: 0.85rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .btn-next {
+        background: var(--secondary-color);
+        color: var(--primary-color);
+        border: none;
+    }
+
+    .btn-next:hover {
+        background: var(--secondary-color);
+        opacity: 0.9;
+        transform: translateX(3px);
+    }
+
+    .btn-prev {
+        background: var(--background-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-prev:hover {
+        background: var(--hover-bg);
+    }
+
+    .btn-save {
+        background: var(--success);
+        color: #fff;
+        border: none;
+    }
+
+    .help-text {
+        color: var(--text-light);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    [data-theme="dark"] .help-text {
+        color: #cbd5e1;
+    }
+</style>
+
+<div class="setup-wizard">
+    <div class="wizard-header" style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--primary-color);">Asistente de Configuración
+        </h1>
+    </div>
+
+    <!-- Pasos del Asistente -->
+    <div class="wizard-steps">
+        <div class="step-item active" id="step-marker-1">
+            <div class="step-icon"><i class="fa-brands fa-microsoft"></i></div>
+            <div class="step-label">Azure AD</div>
+        </div>
+        <div class="step-item" id="step-marker-2">
+            <div class="step-icon"><i class="fa-solid fa-school"></i></div>
+            <div class="step-label">Colegio</div>
+        </div>
+        <div class="step-item" id="step-marker-3">
+            <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="step-label">Seguridad</div>
+        </div>
+        <div class="step-item" id="step-marker-4">
+            <div class="step-icon"><i class="fa-solid fa-envelope"></i></div>
+            <div class="step-label">Ajustes</div>
+        </div>
+    </div>
+
+    <form id="setupForm" method="POST">
+        <!-- Sección 1: Azure AD -->
+        <div class="wizard-section active" id="section-1">
+            <div class="section-title">
+                <i class="fa-brands fa-microsoft"></i>
+                <h3>Conexión con Microsoft 365</h3>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>ID del Tenant (Directorio)</label>
+                <input type="text" name="tenant_id" class="form-control-setup" value="{{ config.TENANT_ID or '' }}"
+                    required placeholder="Ej: 00000000-0000-0000-0000-000000000000">
+                <div class="help-text">El ID único de tu suscripción de Microsoft Azure.</div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ID del Cliente (Aplicación)</label>
+                    <input type="text" name="client_id" class="form-control-setup" value="{{ config.CLIENT_ID or '' }}"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Secreto del Cliente</label>
+                    <input type="password" name="client_secret" class="form-control-setup"
+                        placeholder="••••••••••••••••" {{ 'required' if not is_configured else '' }}>
+                </div>
+            </div>
+            <div class="alert info" style="margin-top: 1rem;">
+                <i class="fa-solid fa-circle-info"></i> La aplicación en Azure debe tener permisos:
+                <b>User.ReadWrite.All, Group.ReadWrite.All, Directory.ReadWrite.All</b>.
+            </div>
+        </div>
+
+        <!-- Sección 2: Colegio -->
+        <div class="wizard-section" id="section-2">
+            <div class="section-title">
+                <i class="fa-solid fa-school"></i>
+                <h3>Información de la Institución</h3>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>Nombre del Colegio</label>
+                <input type="text" name="colegio_nombre" class="form-control-setup"
+                    value="{{ config.COLEGIO_NOMBRE or '' }}" required placeholder="Ej: Colegio Calasanz Suba">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Dominio de Correo</label>
+                    <input type="text" name="colegio_dominio" class="form-control-setup"
+                        value="{{ config.COLEGIO_DOMINIO or '' }}" required placeholder="colegio.edu.co">
+                </div>
+                <div class="form-group">
+                    <label>Periodo Escolar</label>
+                    <select name="periodo_actual" class="form-control-setup">
+                        {% for year in range(2025, 2031) %}
+                        <option value="{{ year }}" {{ 'selected' if config.PERIODO_ACTUAL==year|string else '' }}>
+                            Estudiantes {{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 3: Seguridad -->
+        <div class="wizard-section" id="section-3">
+            <div class="section-title">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h3>Administrador del Sistema</h3>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" name="admin_user" class="form-control-setup"
+                        value="{{ config.ADMIN_USER or 'admin' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" name="admin_password" class="form-control-setup"
+                        placeholder="Dejar vacío para no cambiar" {{ 'required' if not is_configured else '' }}>
+                </div>
+            </div>
+            <div class="alert warning">
+                <i class="fa-solid fa-triangle-exclamation"></i> Esta cuenta es local para esta herramienta, no es tu
+                cuenta de Microsoft 365.
+            </div>
+        </div>
+
+        <!-- Sección 4: Ajustes -->
+        <div class="wizard-section" id="section-4">
+            <div class="section-title">
+                <i class="fa-solid fa-envelope"></i>
+                <h3>Notificaciones y Envío</h3>
+            </div>
+            <div class="form-group">
+                <label>Correo Remitente</label>
+                <input type="email" name="email_sender" class="form-control-setup"
+                    value="{{ config.EMAIL_SENDER or '' }}" placeholder="notificaciones@colegio.edu.co">
+                <div class="help-text">Desde esta cuenta se enviarán los correos de bienvenida a los estudiantes.</div>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="wizard-nav">
+            <button type="button" class="btn-wizard btn-prev" id="prevBtn" onclick="nextSection(-1)"
+                style="visibility: hidden;">
+                <i class="fa-solid fa-chevron-left"></i> Anterior
+            </button>
+            <button type="button" class="btn-wizard btn-next" id="nextBtn" onclick="nextSection(1)">
+                Siguiente <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button type="submit" class="btn-wizard btn-save" id="saveBtn" style="display: none;">
+                Finalizar y Guardar <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let currentSection = 1;
+    const totalSections = 4;
+
+    function nextSection(n) {
+        if (n > 0) {
+            const inputs = document.getElementById(`section-${currentSection}`).querySelectorAll('[required]');
+            for (let input of inputs) {
+                if (!input.value) {
+                    alert('Por favor, completa los campos obligatorios.');
+                    return;
+                }
+            }
+        }
+        currentSection += n;
+        showSection(currentSection);
+    }
+
+    function showSection(n) {
+        for (let i = 1; i <= totalSections; i++) {
+            document.getElementById(`section-${i}`).style.display = (i === n) ? 'block' : 'none';
+            document.getElementById(`step-marker-${i}`).classList.toggle('active', i === n);
+        }
+        document.getElementById('prevBtn').style.visibility = (n === 1) ? 'hidden' : 'visible';
+        if (n === totalSections) {
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'flex';
+        } else {
+            document.getElementById('nextBtn').style.display = 'flex';
+            document.getElementById('saveBtn').style.display = 'none';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

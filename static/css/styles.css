@@ -609,8 +609,51 @@ body {
 
 .alert.success {
     background-color: #def7ec;
-    color: var(--success);
+    color: #03543f;
     border: 1px solid #bcf0da;
+}
+
+.alert.warning {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fef3c7;
+}
+
+.alert.info {
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.alert.error {
+    background-color: #fde8e8;
+    color: #9b1c1c;
+    border: 1px solid #fbd5d5;
+}
+
+/* Contrast adjustment for dark mode - Using white/light text */
+[data-theme="dark"] .alert.error {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ffffff !important;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .alert.warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #ffffff !important;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .alert.success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #ffffff !important;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-theme="dark"] .alert.info {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #ffffff !important;
+    border-color: rgba(59, 130, 246, 0.4);
 }
 
 /* Global Footer */
