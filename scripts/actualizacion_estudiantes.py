@@ -73,7 +73,7 @@ class ActualizadorEstudiantes:
                     estudiante["NOMBRES"] = current_user.get("givenName", "")
                     estudiante["APELLIDOS"] = current_user.get("surname", "")
                 else:
-                    print(f"   ⚠️ No se pudieron obtener datos actuales: {get_resp.status_code}")
+                    print(f"   ⚠️ No se pudieron obtener datos actuales para '{user_principal_name}': {get_resp.status_code} (User Not Found)")
                     # Fallback riesgoso o saltar
             except Exception as e:
                  print(f"   ⚠️ Error consultando datos actuales: {e}")
@@ -126,6 +126,8 @@ class ActualizadorEstudiantes:
             
             # Limpiar datos
             df.columns = df.columns.str.strip()
+            # Convertir todo a string y quitar espacios de CADA VALOR
+            df = df.astype(str).map(lambda x: x.strip())
             df = df.fillna("")
             
             print(f"Archivo cargado: {len(df)} estudiantes para actualizar")
