@@ -127,7 +127,10 @@ def upload(accion):
             
         filename_lower = file.filename.lower()
         if file and (filename_lower.endswith('.xlsx') or filename_lower.endswith('.csv')):
-            filename = secure_filename(file.filename)
+            # SOLUCION ERROR PERMISOS: Timestamp para evitar bloqueos
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            original_name = secure_filename(file.filename)
+            filename = f"{timestamp}_{original_name}"
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             
