@@ -485,7 +485,8 @@ def setup():
                 'colegio_dominio': request.form['colegio_dominio'],
                 'periodo_actual': request.form['periodo_actual'],
                 'admin_user': request.form.get('admin_user', 'admin'),
-                'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}")
+                'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}"),
+                'team_fuente_id': request.form.get('team_fuente_id')
             }
             
             # Solo actualizar password si se ingresó uno nuevo
@@ -521,6 +522,7 @@ def setup():
             flash(f"Error procesando el formulario: {str(e)}", "error")
             
     return render_template('setup.html', config=config, is_configured=is_configured)
+
 
 
 

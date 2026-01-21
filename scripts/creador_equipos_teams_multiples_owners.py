@@ -44,6 +44,11 @@ class CreadorEquiposTeamsMultipleOwners:
     
     def obtener_team_fuente_id_desde_env(self) -> str:
         """Obtiene ID del Team Fuente desde .env"""
+        # 1. Intentar desde config cargada (DB)
+        if hasattr(config, 'TEAM_FUENTE_ID') and config.TEAM_FUENTE_ID:
+            print(f"✅ ID Team Fuente obtenido de base de datos/config")
+            return config.TEAM_FUENTE_ID
+
         team_fuente_id = os.getenv('TEAM_FUENTE_ID')
         
         if team_fuente_id:

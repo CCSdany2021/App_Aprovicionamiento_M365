@@ -30,7 +30,9 @@ class ConfiguracionM365:
             self.PERIODO_ACTUAL = db_config['periodo_actual']
             self.ADMIN_USER = db_config['admin_user']
             self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
+            self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
             self.EMAIL_SENDER = db_config['email_sender']
+            self.TEAM_FUENTE_ID = db_config['team_fuente_id']
         else:
             # 2. Fallback al .env
             self.TENANT_ID = os.getenv('TENANT_ID')
@@ -43,6 +45,7 @@ class ConfiguracionM365:
             self.ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
             self.ADMIN_PASSWORD_HASH = generate_password_hash(self.ADMIN_PASSWORD) if self.ADMIN_PASSWORD else None
             self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
+            self.TEAM_FUENTE_ID = os.getenv('TEAM_FUENTE_ID')
 
         # Configuración Microsoft 365 Invariante
         self.AUTHORITY = os.getenv('AUTHORITY', f"https://login.microsoftonline.com/{self.TENANT_ID}")

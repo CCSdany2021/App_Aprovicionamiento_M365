@@ -255,6 +255,15 @@
                         placeholder="••••••••••••••••" {{ 'required' if not is_configured else '' }}>
                 </div>
             </div>
+
+            <!-- NUEVO CAMPO: ID TEAM FUENTE -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>ID del Team Fuente (Plantilla)</label>
+                <input type="text" name="team_fuente_id" class="form-control-setup"
+                    value="{{ config.TEAM_FUENTE_ID or '' }}" placeholder="Ej: 00000000-0000-0000-0000-000000000000">
+                <div class="help-text">El ID del equipo de Teams que se usará como base para clonar los nuevos equipos.
+                </div>
+            </div>
             <div class="alert info" style="margin-top: 1rem;">
                 <i class="fa-solid fa-circle-info"></i> La aplicación en Azure debe tener permisos:
                 <b>User.ReadWrite.All, Group.ReadWrite.All, Directory.ReadWrite.All</b>.

@@ -3,17 +3,184 @@
 {% block header %}Detalle del Log{% endblock %}
 
 {% block content %}
-<div class="card" style="align-items: flex-start; text-align: left;">
-    <h3 style="margin-bottom: 0.5rem;">{{ filename }}</h3>
-    
-    <div class="log-container" style="width: 100%; height: 500px; max-height: 60vh;">
-{{ content }}
+<style>
+    .log-viewer-container {
+        display: flex;
+        flex-direction: column;
+        height: 70vh;
+        background-color: #1e1e1e;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #333;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .log-toolbar {
+        background-color: #252526;
+        padding: 0.5rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #333;
+    }
+
+    .log-filename {
+        color: #cccccc;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.9rem;
+    }
+
+    .log-content {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #d4d4d4;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    /* Scrollbar styling */
+    .log-content::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .log-content::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+
+    .log-content::-webkit-scrollbar-thumb {
+        background: #424242;
+        border-radius: 5px;
+    }
+
+    .log-content::-webkit-scrollbar-thumb:hover {
+        background: #4f4f4f;
+    }
+
+    /* Syntax Highlighting */
+    .log-line-error {
+        color: #f48771;
+        font-weight: bold;
+    }
+
+    /* Rojo claro */
+    .log-line-warning {
+        color: #cca700;
+    }
+
+    /* Amarillo */
+    .log-line-success {
+        color: #89d185;
+        font-weight: bold;
+    }
+
+    /* Verde claro */
+    .log-line-info {
+        color: #9cdcfe;
+    }
+
+    /* Azul claro */
+    .log-line-timestamp {
+        color: #569cd6;
+    }
+
+    /* Azul oscuro */
+
+    .btn-copy {
+        background: transparent;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: 0.2s;
+    }
+
+    .btn-copy:hover {
+        background: #333;
+        border-color: #777;
+    }
+
+    .btn-copy i {
+        margin-right: 4px;
+    }
+</style>
+
+<div class="card" style="background: transparent; box-shadow: none; border: none; padding: 0;">
+    <div class="log-viewer-container">
+        <div class="log-toolbar">
+            <div class="log-filename">
+                <i class="fa-regular fa-file-code" style="margin-right: 8px;"></i>
+                {{ filename }}
+            </div>
+            <button class="btn-copy" onclick="copyLog()">
+                <i class="fa-regular fa-copy"></i> Copiar
+            </button>
+        </div>
+        <div class="log-content" id="logContent">{{ content }}</div>
     </div>
-    
+
     <div class="actions" style="margin-top: 1.5rem;">
-        <a href="{{ url_for('logs') }}" class="btn btn-primary">
-            <i class="fa-solid fa-arrow-left"></i> Volver a la lista
+        <a href="{{ url_for('logs') }}" class="btn-wizard btn-prev"
+            style="display: inline-flex; text-decoration: none;">
+            <i class="fa-solid fa-arrow-left" style="margin-right: 0.5rem;"></i> Volver a la lista
         </a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        highlightLogs();
+    });
+
+    function highlightLogs() {
+        const container = document.getElementById('logContent');
+        const text = container.textContent;
+        const lines = text.split('\n');
+
+        // Limpiar
+        container.innerHTML = '';
+
+        lines.forEach(line => {
+            if (!line.trim()) {
+                container.appendChild(document.createElement('br'));
+                return;
+            }
+
+            const div = document.createElement('div');
+
+            // Reglas de color
+            const lower = line.toLowerCase();
+            if (lower.includes('error') || lower.includes('failed') || lower.includes('❌')) {
+                div.className = 'log-line-error';
+            } else if (lower.includes('warning') || lower.includes('advertencia') || lower.includes('⚠️')) {
+                div.className = 'log-line-warning';
+            } else if (lower.includes('success') || lower.includes('exitoso') || lower.includes('✅')) {
+                div.className = 'log-line-success';
+            } else if (lower.includes('info') || lower.includes('🚀')) {
+                div.className = 'log-line-info';
+            }
+
+            div.textContent = line;
+            container.appendChild(div);
+        });
+    }
+
+    function copyLog() {
+        const text = document.getElementById('logContent').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.btn-copy');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copiar';
+            }, 2000);
+        }).catch(err => {
+            console.error('Error al copiar:', err);
+        });
+    }
+</script>
 {% endblock %}

@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automatización de Usuarios y Grupos M365</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}?v=2.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2.2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}?v=2.2">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -44,9 +44,7 @@
                     <a href="{{ url_for('index') }}" class="nav-item">
                         <i class="fa-solid fa-house"></i> Inicio
                     </a>
-                    <a href="{{ url_for('dashboard') }}" class="nav-item">
-                        <i class="fa-solid fa-chart-line"></i> Dashboard
-                    </a>
+
                     <div class="nav-category">Aprovisionamiento</div>
                     <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
                         <i class="fa-solid fa-user-plus"></i> Crear Estudiantes
@@ -61,9 +59,6 @@
                     <div class="nav-category">Microsoft Teams</div>
                     <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="nav-item">
                         <i class="fa-solid fa-people-group"></i> Crear Equipos
-                    </a>
-                    <a href="{{ url_for('sync_teams') }}" class="nav-item">
-                        <i class="fa-solid fa-rotate"></i> Sincronizar Teams
                     </a>
                     <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
                         <i class="fa-solid fa-users-slash"></i> Vaciar Equipos

@@ -4,8 +4,8 @@
     --background-color: #F8FAFC;
     --white: #FFFFFF;
     --card-bg: #FFFFFF;
-    --text-color: #1E293B;
-    --text-light: #64748B;
+    --text-color: #000000;
+    --text-light: #475569;
     --danger: #EF4444;
     --success: #10B981;
     --border-color: #E2E8F0;
@@ -29,8 +29,8 @@
     --white: #1E293B;
     --card-bg: #153459;
     /* Azul corporativo solicitado */
-    --text-color: #F1F5F9;
-    --text-light: #94A3B8;
+    --text-color: #FFFFFF;
+    --text-light: #E2E8F0;
     --danger: #F87171;
     --success: #34D399;
     --border-color: #334155;
@@ -52,6 +52,36 @@
     /* Títulos blancos en modo oscuro */
 }
 
+[data-theme="dark"] p, 
+[data-theme="dark"] span, 
+[data-theme="dark"] div, 
+[data-theme="dark"] label,
+[data-theme="dark"] td,
+[data-theme="dark"] th {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-light) !important;
+}
+
+/* Fix for Contrast on Yellow Backgrounds in Dark Mode */
+[data-theme="dark"] .global-header,
+[data-theme="dark"] .global-footer,
+[data-theme="dark"] .user-badge,
+[data-theme="dark"] .global-header h1,
+[data-theme="dark"] .global-header i,
+[data-theme="dark"] .global-footer span,
+[data-theme="dark"] .global-footer p,
+[data-theme="dark"] .user-badge i {
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .global-footer .highlight {
+    color: #000000;
+    text-decoration: underline;
+}
+
 
 
 * {
@@ -67,6 +97,25 @@ body {
     height: 100vh;
     overflow: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Force text inputs to match theme */
+input, select, textarea {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] input, 
+[data-theme="dark"] select, 
+[data-theme="dark"] textarea {
+    background-color: #1e293b;
+    color: #FFFFFF;
+    border-color: #475569;
+}
+
+[data-theme="dark"] ::placeholder {
+    color: #94a3b8;
 }
 
 .app-container {

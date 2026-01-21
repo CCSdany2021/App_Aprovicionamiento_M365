@@ -33,6 +33,8 @@ archivos_subidos/*
 !archivos_subidos/.gitkeep
 resultados/*
 !resultados/.gitkeep
+archivos_procesar/*
+!archivos_procesar/.gitkeep
 
 # Logs
 *.log

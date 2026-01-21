@@ -31,8 +31,9 @@ class GestorConfiguracion:
                     colegio_dominio TEXT,
                     periodo_actual TEXT DEFAULT '2026',
                     admin_user TEXT DEFAULT 'admin',
-                    admin_password_hash TEXT,
-                    email_sender TEXT
+                admin_password_hash TEXT,
+                    email_sender TEXT,
+                    team_fuente_id TEXT
                 )
             ''')
             
@@ -46,6 +47,8 @@ class GestorConfiguracion:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN admin_password_hash TEXT")
             if 'email_sender' not in columnas:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN email_sender TEXT")
+            if 'team_fuente_id' not in columnas:
+                cursor.execute("ALTER TABLE configuracion ADD COLUMN team_fuente_id TEXT")
                 
             conn.commit()
 
@@ -70,8 +73,8 @@ class GestorConfiguracion:
             cursor.execute('DELETE FROM configuracion')
             cursor.execute('''
                 INSERT INTO configuracion 
-                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender, team_fuente_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 data['tenant_id'], 
                 data['client_id'], 
@@ -81,7 +84,8 @@ class GestorConfiguracion:
                 data.get('periodo_actual', '2026'),
                 data.get('admin_user', 'admin'),
                 pass_hash if pass_hash else data.get('admin_password_hash'),
-                data.get('email_sender')
+                data.get('email_sender'),
+                data.get('team_fuente_id')
             ))
             conn.commit()
 
