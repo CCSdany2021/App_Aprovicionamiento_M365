@@ -26,6 +26,7 @@ from scripts.sincronizador_automatico_teams import SincronizadorAutomaticoTeams
 from scripts.sincronizador_politicas_teams import SincronizadorPoliticasTeams
 from scripts.creador_reglas_reenvio import CreadorReglasReenvio
 from scripts.gestor_configuracion import GestorConfiguracion
+from scripts.exportar_estudiantes import ExportadorEstudiantes
 
     
 app = Flask(__name__)
@@ -309,6 +310,11 @@ def stream_process():
         elif accion == 'crear_reglas_reenvio':
             objeto_proceso = CreadorReglasReenvio()
             gen = objeto_proceso.ejecutar(filepath)
+        elif accion == 'exportar_estudiantes':
+            objeto_proceso = ExportadorEstudiantes()
+            # Obtenemos el departamento desde request.args, fallback al config o valor default
+            dept = request.args.get('departamento', config.DEFAULT_DEPARTMENT)
+            gen = objeto_proceso.exportar_por_departamento(dept)
         else:
             yield f"data: {json.dumps({'status': 'error', 'message': f'Acción {accion} no soportada para streaming'})}\n\n"
             return
@@ -341,6 +347,19 @@ def sync_policies():
 def ccs_dashboard():
     """Dashboard exclusivo para reglas de reenvío CCS"""
     return render_template('ccs_dashboard.html')
+
+@app.route('/export_dataset', methods=['GET', 'POST'])
+@login_required
+def export_dataset():
+    """Interfaz para exportar estudiantes por departamento"""
+    if request.method == 'POST':
+        departamento = request.form.get('departamento', 'Estudiante 2026')
+        return render_template('progress.html', 
+                          titulo=f"Exportando Estudiantes: {departamento}",
+                          endpoint=url_for('stream_process', accion='exportar_estudiantes', departamento=departamento),
+                          proxima_ruta=url_for('ver_resultados'))
+    
+    return render_template('export.html', default_dept=config.DEFAULT_DEPARTMENT)
 
 @app.route('/descargar_plantilla_reenvio')
 @login_required
@@ -489,7 +508,8 @@ def setup():
                 'periodo_actual': request.form['periodo_actual'],
                 'admin_user': request.form.get('admin_user', 'admin'),
                 'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}"),
-                'team_fuente_id': request.form.get('team_fuente_id')
+                'team_fuente_id': request.form.get('team_fuente_id'),
+                'default_city': request.form.get('default_city', 'Bogotá')
             }
             
             # Solo actualizar password si se ingresó uno nuevo

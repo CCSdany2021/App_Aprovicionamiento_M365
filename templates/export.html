@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block header %}Exportar Estudiantes (Validación){% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 200px); width: 100%;">
+    <div class="card" style="max-width: 600px; width: 100%;">
+        <div class="card-icon" style="margin: 0 auto 1.5rem auto; background: var(--secondary-color); color: var(--primary-color);">
+            <i class="fa-solid fa-file-export"></i>
+        </div>
+        
+        <h2 style="text-align: center; margin-bottom: 1rem; color: var(--primary-color);">Exportar Dataset de Estudiantes</h2>
+        <p style="text-align: center; color: var(--text-light); margin-bottom: 2rem;">
+            Genera un archivo Excel con todos los estudiantes que pertenezcan a un departamento específico para validar sus datos.
+        </p>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="departamento" style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Filtrar por Departamento:</label>
+                <div style="position: relative;">
+                    <i class="fa-solid fa-filter" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+                    <input type="text" id="departamento" name="departamento" value="{{ default_dept }}" 
+                        required
+                        style="width: 100%; padding: 0.8rem 1rem 0.8rem 2.5rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+                </div>
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-light);">
+                    Ingresa el nombre exacto del departamento (Ej: 'Estudiante 2026')
+                </small>
+            </div>
+
+            <div class="actions" style="margin-top: 2rem; justify-content: space-between;">
+                <a href="{{ url_for('index') }}" class="btn" style="background-color: var(--background-color); border: 1px solid var(--border-color); color: var(--text-color);">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-download"></i> Iniciar Exportación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

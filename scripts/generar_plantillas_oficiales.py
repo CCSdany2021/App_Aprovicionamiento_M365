@@ -15,10 +15,10 @@ def generar_plantillas():
     print(f"✅ Plantilla generada: {path_crear}")
 
     # 2. Plantilla Actualizar Estudiantes (SIN DOCUMENTO)
-    cols_actualizar = ["CODIGO", "NOMBRES", "APELLIDOS", "CURSO", "GRADO"]
+    cols_actualizar = ["CODIGO", "NOMBRES", "APELLIDOS", "CURSO"]
     df_actualizar = pd.DataFrame(columns=cols_actualizar)
     # Add an example row
-    df_actualizar.loc[0] = ["123456", "JUAN CAMILO", "PEREZ LOPEZ", "1102", "11"]
+    df_actualizar.loc[0] = ["123456", "JUAN CAMILO", "PEREZ LOPEZ", "1102"]
     
     path_actualizar = 'plantillas/plantilla_actualizar_estudiantes.xlsx'
     df_actualizar.to_excel(path_actualizar, index=False)

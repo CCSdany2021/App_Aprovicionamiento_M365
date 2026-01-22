@@ -33,6 +33,7 @@ class ConfiguracionM365:
             self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
             self.EMAIL_SENDER = db_config['email_sender']
             self.TEAM_FUENTE_ID = db_config['team_fuente_id']
+            self.DEFAULT_CITY = db_config.get('default_city', 'Bogotá')
         else:
             # 2. Fallback al .env
             self.TENANT_ID = os.getenv('TENANT_ID')
@@ -59,7 +60,7 @@ class ConfiguracionM365:
         self.DEFAULT_USAGE_LOCATION = os.getenv('DEFAULT_USAGE_LOCATION', 'CO')
         self.DEFAULT_DEPARTMENT = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes')
         self.DEFAULT_JOB_TITLE = os.getenv('DEFAULT_JOB_TITLE', 'Estudiante')
-        self.DEFAULT_CITY = os.getenv('DEFAULT_CITY', 'Bogotá')
+        self.DEFAULT_CITY = getattr(self, 'DEFAULT_CITY', os.getenv('DEFAULT_CITY', 'Bogotá'))
         
         # Licencias
         self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT')

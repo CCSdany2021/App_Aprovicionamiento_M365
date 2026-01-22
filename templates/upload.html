@@ -23,8 +23,22 @@
                 <input type="file" name="file" id="fileInput" style="display: none;" accept=".xlsx, .csv"
                     onchange="mostrarNombreArchivo(this)">
 
-                <div id="fileInfo" style="margin-top: 1rem; font-weight: 600; color: var(--primary-color);"></div>
+            <div id="fileInfo" style="margin-top: 1rem; font-weight: 600; color: var(--primary-color);"></div>
             </div>
+
+            {% if accion in ['crear', 'actualizar', 'eliminar'] %}
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="{{ url_for('descargar_plantilla', tipo=accion) }}" class="text-link" style="color: var(--secondary-color); text-decoration: none; font-weight: 600;">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Modelo
+                </a>
+            </div>
+            {% elif accion == 'asignar_politicas' %}
+             <div style="text-align: center; margin-top: 1rem;">
+                <a href="{{ url_for('descargar_plantilla', tipo='politicas') }}" class="text-link" style="color: var(--secondary-color); text-decoration: none; font-weight: 600;">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Modelo
+                </a>
+            </div>
+            {% endif %}
 
             <div class="actions" style="justify-content: center;">
                 <a href="{{ url_for('index') }}" class="btn"

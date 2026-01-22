@@ -138,6 +138,20 @@ content %}
     </form>
   </div>
 
+
+  <!-- Exportar Dataset -->
+  <a href="{{ url_for('export_dataset') }}" class="card-link">
+    <div class="card card-featured">
+    <div class="card-badge">Validación</div>
+      <div class="card-icon">
+        <i class="fa-solid fa-file-export"></i>
+      </div>
+      <h3>Exportar Dataset (Validación)</h3>
+      <p>Generar Excel con usuarios por departamento para validar actualizaciones.</p>
+      <span class="btn btn-success" style="width:100%">Exportar a Excel <i class="fa-solid fa-file-excel"></i></span>
+    </div>
+  </a>
+
   <!-- Asignar Políticas (Manual) -->
   <a href="{{ url_for('upload', accion='asignar_politicas') }}" class="card-link">
     <div class="card card-accent">

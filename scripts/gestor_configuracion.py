@@ -33,7 +33,8 @@ class GestorConfiguracion:
                     admin_user TEXT DEFAULT 'admin',
                 admin_password_hash TEXT,
                     email_sender TEXT,
-                    team_fuente_id TEXT
+                    team_fuente_id TEXT,
+                    default_city TEXT DEFAULT 'Bogotá'
                 )
             ''')
             
@@ -49,6 +50,8 @@ class GestorConfiguracion:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN email_sender TEXT")
             if 'team_fuente_id' not in columnas:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN team_fuente_id TEXT")
+            if 'default_city' not in columnas:
+                cursor.execute("ALTER TABLE configuracion ADD COLUMN default_city TEXT DEFAULT 'Bogotá'")
                 
             conn.commit()
 
@@ -73,8 +76,8 @@ class GestorConfiguracion:
             cursor.execute('DELETE FROM configuracion')
             cursor.execute('''
                 INSERT INTO configuracion 
-                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender, team_fuente_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender, team_fuente_id, default_city)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 data['tenant_id'], 
                 data['client_id'], 
@@ -85,7 +88,8 @@ class GestorConfiguracion:
                 data.get('admin_user', 'admin'),
                 pass_hash if pass_hash else data.get('admin_password_hash'),
                 data.get('email_sender'),
-                data.get('team_fuente_id')
+                data.get('team_fuente_id'),
+                data.get('default_city', 'Bogotá')
             ))
             conn.commit()
 
