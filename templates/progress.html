@@ -144,6 +144,8 @@
             statusTitle.style.color = "#e74c3c";
             addLog(data.message, 'error');
             progressBar.style.backgroundColor = "#e74c3c";
+            // Mostrar botones de salida en caso de error
+            finishActions.style.display = 'flex';
         }
         else if (data.status === 'complete') {
             statusTitle.innerText = "Proceso Completado";
@@ -162,6 +164,18 @@
 
                 document.getElementById('summaryText').innerText = summary;
                 document.getElementById('summaryAlert').style.display = 'block';
+
+                // BOTÓN DE DESCARGA DIRECTA
+                if (res.archivo) {
+                    const downloadBtn = document.createElement('a');
+                    downloadBtn.href = `/descargar_resultado/${res.archivo}`;
+                    downloadBtn.className = 'btn btn-success'; 
+                    downloadBtn.style = 'background-color: #2ecc71; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 500; text-decoration: none;';
+                    downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Descargar Excel';
+                    
+                    // Insertar al inicio de las acciones
+                    finishActions.insertBefore(downloadBtn, finishActions.firstChild);
+                }
             }
 
             finishActions.style.display = 'flex';
@@ -171,8 +185,11 @@
 
     eventSource.onerror = function (err) {
         console.error("EventSource failed:", err);
-        addLog("Conexión perdida con el servidor. El proceso podría seguir ejecutándose en segundo plano.", 'warning');
+        addLog("Conexión perdida con el servidor o finalizada inesperadamente.", 'warning');
+        statusTitle.innerText = "Conexión Finalizada";
         eventSource.close();
+        // Mostrar botones de salida para no dejar atrapado al usuario
+        finishActions.style.display = 'flex';
     };
 </script>
 {% endblock %}

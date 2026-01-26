@@ -1,5 +1,7 @@
 import os
 import sys
+# Trigger reload for xlsxwriter fallback update
+import sys
 import secrets
 import json
 import pandas as pd
@@ -26,7 +28,7 @@ from scripts.sincronizador_automatico_teams import SincronizadorAutomaticoTeams
 from scripts.sincronizador_politicas_teams import SincronizadorPoliticasTeams
 from scripts.creador_reglas_reenvio import CreadorReglasReenvio
 from scripts.gestor_configuracion import GestorConfiguracion
-from scripts.exportar_estudiantes import ExportadorEstudiantes
+from scripts.exportar_usuarios_tenant import ExportadorUsuariosTenant
 
     
 app = Flask(__name__)
@@ -311,10 +313,13 @@ def stream_process():
             objeto_proceso = CreadorReglasReenvio()
             gen = objeto_proceso.ejecutar(filepath)
         elif accion == 'exportar_estudiantes':
-            objeto_proceso = ExportadorEstudiantes()
+            objeto_proceso = ExportadorUsuariosTenant()
             # Obtenemos el departamento desde request.args, fallback al config o valor default
             dept = request.args.get('departamento', config.DEFAULT_DEPARTMENT)
-            gen = objeto_proceso.exportar_por_departamento(dept)
+            # Soporte para exportar TODO si dept es explícitamente "TODOS" o vacío
+            if dept == "TODOS":
+                dept = None
+            gen = objeto_proceso.exportar_usuarios(dept)
         else:
             yield f"data: {json.dumps({'status': 'error', 'message': f'Acción {accion} no soportada para streaming'})}\n\n"
             return
