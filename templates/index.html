@@ -114,10 +114,24 @@ content %}
     </div>
     <h3>Sincronización Automática</h3>
     <p>Mapea el tenant y vincula a estudiantes a equipos de Teams periodo 2026.</p>
+    <form action="{{ url_for('sync_teams') }}" method="POST" class="mt-2">
+      <div class="mb-3">
+          <label class="form-label text-white-50" style="font-size:0.9rem">Sincronización Rápida (1 Estudiante):</label>
+          <div style="display: flex; gap: 5px;">
+              <input type="email" name="single_upn" class="form-control" placeholder="correo@colegio.edu.co" style="padding: 5px 10px; font-size: 0.9rem;">
+              <button type="submit" class="btn btn-primary" title="Sincronizar solo este usuario">
+                  <i class="fas fa-bolt"></i>
+              </button>
+          </div>
+      </div>
+    </form>
+    
+    <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 10px 0;"></div>
+
     <form action="{{ url_for('sync_teams') }}" method="POST"
       onsubmit="return confirm('¿Estás seguro de iniciar la sincronización masiva de EQUIPOS?')">
-      <button type="submit" class="btn btn-primary btn-full">
-        Sincronizar Ya <i class="fa-solid fa-cloud-arrow-down"></i>
+      <button type="submit" class="btn btn-warning btn-full" style="background-color: #ffbf00; color: #000; font-weight: bold;">
+        Sincronizar TODOS (Masivo) <i class="fa-solid fa-users-viewfinder"></i>
       </button>
     </form>
   </div>

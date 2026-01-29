@@ -5,8 +5,14 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static')],
-    hiddenimports=[],
+    datas=[
+        ('templates', 'templates'), 
+        ('static', 'static'),
+        ('scripts', 'scripts'),
+        ('plantillas', 'plantillas'),
+        ('archivos', 'archivos')
+    ],
+    hiddenimports=['openpyxl', 'xlsxwriter', 'jinja2.ext'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

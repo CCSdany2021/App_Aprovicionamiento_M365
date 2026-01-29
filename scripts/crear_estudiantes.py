@@ -107,7 +107,7 @@ class CreadorEstudiantes:
             return False
 
     def asignar_licencia(self, codigo_estudiante: str) -> bool:
-        """Asigna licencia A1 al estudiante"""
+        """Asigna licencia al estudiante"""
         if not self.token:
             return False
             
@@ -115,6 +115,11 @@ class CreadorEstudiantes:
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
         }
+
+        # Validar que SkuId no sea None
+        if not config.LICENSE_STUDENT:
+            print(f"⚠️  No se ha configurado LICENSE_STUDENT en .env. Omitiendo licencia para {codigo_estudiante}")
+            return False
 
         data = {
             "addLicenses": [{"skuId": config.LICENSE_STUDENT}],
@@ -129,6 +134,13 @@ class CreadorEstudiantes:
             if response.status_code == 200:
                 print(f"✅ Licencia asignada a {codigo_estudiante}")
                 return True
+            elif response.status_code == 400:
+                 # Error común: Licencia no válida o agotada
+                print(f"❌ Error 400 asignando licencia a {codigo_estudiante}: Verifique que el SKU '{config.LICENSE_STUDENT}' sea válido en este tenant.")
+                return False
+            elif response.status_code == 404:
+                print(f"❌ Usuario no encontrado para asignar licencia: {user_email}")
+                return False
             else:
                 print(f"❌ Error asignando licencia a {codigo_estudiante}: {response.text}")
                 return False
@@ -136,6 +148,28 @@ class CreadorEstudiantes:
         except requests.RequestException as e:
             print(f"❌ Error de conexión asignando licencia a {codigo_estudiante}: {e}")
             return False
+
+    def validar_sku_licencia(self) -> bool:
+        """Verifica si el SKU de licencia configurado existe en el tenant"""
+        if not self.token: return False
+        
+        try:
+            headers = {"Authorization": f"Bearer {self.token}"}
+            resp = requests.get(f"{config.GRAPH_ENDPOINT}/subscribedSkus", headers=headers, verify=False)
+            if resp.status_code == 200:
+                skus = resp.json().get('value', [])
+                sku_ids = [s['skuId'] for s in skus]
+                
+                if config.LICENSE_STUDENT in sku_ids:
+                    print(f"✅ Licencia configurada válida: {config.LICENSE_STUDENT}")
+                    return True
+                else:
+                    print(f"⚠️  ADVERTENCIA: La licencia configurada '{config.LICENSE_STUDENT}' NO existe en este tenant.")
+                    print(f"   Licencias disponibles: {sku_ids}")
+                    return False
+            return True # Si falla la lectura, asumimos ok para no bloquear
+        except:
+            return True
 
     def cargar_archivo(self, ruta_archivo: str) -> pd.DataFrame:
         """Carga estudiantes desde archivo Excel o CSV"""
@@ -226,6 +260,9 @@ class CreadorEstudiantes:
             
             # Pasar token al notificador
             self.notificador.token = self.token
+            
+            # Validar licencia antes de empezar
+            self.validar_sku_licencia()
             
             # Procesar estudiantes
             total = len(df)

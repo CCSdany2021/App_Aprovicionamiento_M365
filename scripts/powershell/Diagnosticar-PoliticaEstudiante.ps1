@@ -79,5 +79,6 @@ try {
 
 }
 catch {
-    Write-Host "❌ Ocurrió un error inesperado: $_" -ForegroundColor Red
+    $ErrorMsg = $_.Exception.Message
+    Write-Host "Error inesperado: $ErrorMsg" -ForegroundColor Red
 }

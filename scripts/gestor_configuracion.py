@@ -52,6 +52,10 @@ class GestorConfiguracion:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN team_fuente_id TEXT")
             if 'default_city' not in columnas:
                 cursor.execute("ALTER TABLE configuracion ADD COLUMN default_city TEXT DEFAULT 'Bogotá'")
+            if 'license_student' not in columnas:
+                cursor.execute("ALTER TABLE configuracion ADD COLUMN license_student TEXT")
+            if 'license_faculty' not in columnas:
+                cursor.execute("ALTER TABLE configuracion ADD COLUMN license_faculty TEXT")
                 
             conn.commit()
 
@@ -76,8 +80,8 @@ class GestorConfiguracion:
             cursor.execute('DELETE FROM configuracion')
             cursor.execute('''
                 INSERT INTO configuracion 
-                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender, team_fuente_id, default_city)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (tenant_id, client_id, client_secret_enc, colegio_nombre, colegio_dominio, periodo_actual, admin_user, admin_password_hash, email_sender, team_fuente_id, default_city, license_student, license_faculty)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 data['tenant_id'], 
                 data['client_id'], 
@@ -89,7 +93,9 @@ class GestorConfiguracion:
                 pass_hash if pass_hash else data.get('admin_password_hash'),
                 data.get('email_sender'),
                 data.get('team_fuente_id'),
-                data.get('default_city', 'Bogotá')
+                data.get('default_city', 'Bogotá'),
+                data.get('license_student'),
+                data.get('license_faculty')
             ))
             conn.commit()
 

@@ -84,6 +84,14 @@ class NotificadorEmail:
             if response.status_code == 202:
                 print(f"✅ Correo enviado exitosamente vía Graph API a {email_destino}")
                 return True
+            elif response.status_code == 404:
+                print(f"❌ Error 404: El remitente '{self.email_sender}' NO EXISTE en este tenant.")
+                print("   >> Verifique en Configuración que el 'Correo Remitente' sea válido en esta organización.")
+                return False
+            elif response.status_code == 403:
+                print(f"❌ Error 403: Permisos denegados para enviar correo como '{self.email_sender}'.")
+                print("   >> Asegúrese de que la App en Azure tenga el permiso 'Mail.Send' (Application).")
+                return False
             else:
                 print(f"❌ Error enviando correo vía Graph API: {response.status_code} - {response.text}")
                 return False

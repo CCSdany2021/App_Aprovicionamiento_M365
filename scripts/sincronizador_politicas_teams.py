@@ -113,12 +113,28 @@ class SincronizadorPoliticasTeams:
                 if filepath.endswith('.xlsx'):
                     df = pd.read_excel(filepath, dtype=str)
                 else:
-                    df = pd.read_csv(filepath, sep=None, engine='python', dtype=str)
+                    # Intento robusto de lectura CSV
+                    try:
+                        # 1. Intentar coma
+                        df = pd.read_csv(filepath, sep=',', dtype=str, engine='python')
+                        col_check = [c for c in df.columns if c.upper() in ['CODIGO', 'USERPRINCIPALNAME', 'UPN', 'EMAIL']]
+                        
+                        # 2. Intentar punto y coma si falló
+                        if not col_check:
+                            df = pd.read_csv(filepath, sep=';', dtype=str, engine='python')
+                            col_check = [c for c in df.columns if c.upper() in ['CODIGO', 'USERPRINCIPALNAME', 'UPN', 'EMAIL']]
+                        
+                        # 3. Fallback a detección automática
+                        if not col_check:
+                            df = pd.read_csv(filepath, sep=None, dtype=str, engine='python')
+                            
+                    except Exception as e:
+                        raise Exception(f"Formato de archivo no reconocido: {str(e)}")
                 
                 # Detectar columna de identificación
                 col_id = next((c for c in df.columns if c.upper() in ['CODIGO', 'USERPRINCIPALNAME', 'UPN', 'EMAIL']), None)
                 if not col_id:
-                    raise Exception("No se encontró columna de Código o UPN en el archivo")
+                    raise Exception(f"No se encontró columna de Código o UPN. Columnas detectadas: {df.columns.tolist()}")
                 
                 for val in df[col_id].dropna():
                     val = str(val).strip()
@@ -175,7 +191,7 @@ class SincronizadorPoliticasTeams:
                     elif '⚠️  Ya tiene la política' in line:
                         self.resultados["ya_asignados"] += 1
                         yield {"status": "log", "message": line}
-                    elif '❌' in line:
+                    elif '❌' in line or '[ERROR]' in line or 'FATAL:' in line:
                         self.resultados["errores"] += 1
                         yield {"status": "log", "message": line}
                     elif 'Procesando:' in line:

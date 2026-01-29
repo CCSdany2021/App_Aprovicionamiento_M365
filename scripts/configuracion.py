@@ -34,6 +34,8 @@ class ConfiguracionM365:
             self.EMAIL_SENDER = db_config['email_sender']
             self.TEAM_FUENTE_ID = db_config['team_fuente_id']
             self.DEFAULT_CITY = db_config.get('default_city', 'Bogotá')
+            self.LICENSE_STUDENT = db_config.get('license_student')
+            self.LICENSE_FACULTY = db_config.get('license_faculty')
         else:
             # 2. Fallback al .env
             self.TENANT_ID = os.getenv('TENANT_ID')
@@ -47,6 +49,10 @@ class ConfiguracionM365:
             self.ADMIN_PASSWORD_HASH = generate_password_hash(self.ADMIN_PASSWORD) if self.ADMIN_PASSWORD else None
             self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
             self.TEAM_FUENTE_ID = os.getenv('TEAM_FUENTE_ID')
+            
+            # Licencias fallback
+            self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT')
+            self.LICENSE_FACULTY = os.getenv('LICENSE_FACULTY')
 
         # Configuración Microsoft 365 Invariante
         self.AUTHORITY = os.getenv('AUTHORITY', f"https://login.microsoftonline.com/{self.TENANT_ID}")
@@ -58,22 +64,26 @@ class ConfiguracionM365:
         # Configuración por defecto para usuarios
         self.DEFAULT_PASSWORD_POLICY = os.getenv('DEFAULT_PASSWORD_POLICY', 'DisablePasswordExpiration')
         self.DEFAULT_USAGE_LOCATION = os.getenv('DEFAULT_USAGE_LOCATION', 'CO')
-        self.DEFAULT_DEPARTMENT = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes')
+        self.DEFAULT_DEPARTMENT = os.getenv('DEFAULT_DEPARTMENT', 'Estudiante 2026')
         self.DEFAULT_JOB_TITLE = os.getenv('DEFAULT_JOB_TITLE', 'Estudiante')
         self.DEFAULT_CITY = getattr(self, 'DEFAULT_CITY', os.getenv('DEFAULT_CITY', 'Bogotá'))
         
-        # Licencias
-        self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT')
-        self.LICENSE_FACULTY = os.getenv('LICENSE_FACULTY')
-        
-        # Configuración de Email (Microsoft Graph API)
-        self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
+        # Validación de configuración de email (asegura campo)
+        self.EMAIL_SENDER = self.EMAIL_SENDER or os.getenv('EMAIL_SENDER')
         
 
         
-        # Carpetas
-        self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', 'resultados')
-        self.CARPETA_LOGS = os.getenv('CARPETA_LOGS', 'resultados/logs')
+        # Carpetas (Lógica robusta para EXE y DEV)
+        import sys
+        if getattr(sys, 'frozen', False):
+            # Si corre como EXE, usar la carpeta donde está el ejecutable
+            base_path = os.path.dirname(sys.executable)
+        else:
+            # Si corre como script, usar la carpeta del proyecto
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', os.path.join(base_path, 'resultados'))
+        self.CARPETA_LOGS = os.getenv('CARPETA_LOGS', os.path.join(self.CARPETA_RESULTADOS, 'logs'))
         
         # Credenciales Admin
         self.ADMIN_USER = os.getenv('ADMIN_USER', 'admin')

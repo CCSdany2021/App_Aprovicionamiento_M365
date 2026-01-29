@@ -303,6 +303,10 @@ def stream_process():
         elif accion == 'sync_teams':
             objeto_proceso = SincronizadorAutomaticoTeams() # Usa default del .env ("Estudiante 2026")
             gen = objeto_proceso.ejecutar()
+        elif accion == 'sync_single':
+            upn_target = request.args.get('upn')
+            objeto_proceso = SincronizadorAutomaticoTeams(target_upn=upn_target)
+            gen = objeto_proceso.ejecutar()
         elif accion == 'sync_policies':
             objeto_proceso = SincronizadorPoliticasTeams() # Usa default del .env y busqueda inteligente
             gen = objeto_proceso.ejecutar()
@@ -333,8 +337,17 @@ def stream_process():
 @login_required
 def sync_teams():
     """Muestra la interfaz de progreso para sincronización"""
+    # Detectar si es sincronización INDIVIDUAL
+    single_upn = request.form.get('single_upn')
+    
+    if single_upn:
+         return render_template('progress.html', 
+                          titulo=f"Sincronizando Estudiante: {single_upn}",
+                          endpoint=url_for('stream_process', accion='sync_single', upn=single_upn),
+                          proxima_ruta=url_for('index'))
+    
     return render_template('progress.html', 
-                          titulo="Sincronización Automática de Equipos",
+                          titulo="Sincronización Automática de Equipos (Masiva)",
                           endpoint=url_for('stream_process', accion='sync_teams'),
                           proxima_ruta=url_for('index'))
 
@@ -366,11 +379,22 @@ def export_dataset():
     
     return render_template('export.html', default_dept=config.DEFAULT_DEPARTMENT)
 
+def resource_path(relative_path):
+    """Obtiene la ruta absoluta al recurso, funciona para dev y para PyInstaller"""
+    try:
+        # PyInstaller crea una carpeta temporal en _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 @app.route('/descargar_plantilla_reenvio')
 @login_required
 def descargar_plantilla_reenvio():
     """Descarga la plantilla CSV de reenvío"""
-    ruta = os.path.join(os.getcwd(), 'archivos', 'plantillas', 'Reglas_Reenvio_Plantilla.xlsx')
+    # Usar resource_path para encontrar el archivo dentro del EXE
+    ruta = resource_path(os.path.join('plantillas', 'Reglas_Reenvio_Plantilla.xlsx'))
     return send_file(ruta, as_attachment=True)
 
 @app.route('/resultados')
@@ -470,7 +494,8 @@ def descargar_plantilla(tipo):
              flash("Tipo de plantilla no válido", "error")
              return redirect(url_for('index'))
              
-        filepath = os.path.join(os.getcwd(), 'plantillas', filename)
+        # Usar resource_path para encontrar el archivo dentro del EXE
+        filepath = resource_path(os.path.join('plantillas', filename))
         
         if os.path.exists(filepath):
             return send_file(filepath, as_attachment=True, download_name=filename)
@@ -514,7 +539,9 @@ def setup():
                 'admin_user': request.form.get('admin_user', 'admin'),
                 'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}"),
                 'team_fuente_id': request.form.get('team_fuente_id'),
-                'default_city': request.form.get('default_city', 'Bogotá')
+                'default_city': request.form.get('default_city', 'Bogotá'),
+                'license_student': request.form.get('license_student'),
+                'license_faculty': request.form.get('license_faculty')
             }
             
             # Solo actualizar password si se ingresó uno nuevo

@@ -183,18 +183,24 @@ class EliminadorTeams:
         df = self.cargar_archivo(ruta_archivo)
         col_identificador = self.detectar_columna_identificador(df)
         
+        # PREVIEW DE SEGURIDAD
+        print(f"\n🔍 COLUMNA DETECTADA PARA BÚSQUEDA: '{col_identificador}'")
+        first_3_values = df[col_identificador].head(3).tolist()
+        print(f"📊 Primeros valores a buscar: {first_3_values}")
+        print("   (Verifique que estos sean los IDs o Nombres correctos de los equipos)")
+
         # Obtener token
         if not self.obtener_token():
             raise Exception("No se pudo obtener token de acceso")
         
         equipos_a_eliminar = []
         
-        print("\n🔍 Buscando Teams en el tenant...")
+        print("\n🔍 Buscando Teams en el tenant (BÚSQUEDA EXACTA POR ARCHIVO)...")
         print("=" * 70)
         
         for idx, identificador in enumerate(df[col_identificador], 1):
             identificador = str(identificador).strip()
-            if not identificador:
+            if not identificador or identificador.lower() == 'nan':
                 continue
             
             print(f"\n[{idx}] Buscando: {identificador}")

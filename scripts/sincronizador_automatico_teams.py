@@ -13,7 +13,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class SincronizadorAutomaticoTeams:
     """Sincroniza estudiantes directamente desde el Tenant a sus equipos de Teams"""
     
-    def __init__(self, departamento_filtro=None):
+    def __init__(self, departamento_filtro=None, target_upn=None):
         try:
             config.validar_configuracion()
         except:
@@ -23,8 +23,10 @@ class SincronizadorAutomaticoTeams:
         # Obtener periodo de la configuración dinámica
         default_dept = f"Estudiantes {config.PERIODO_ACTUAL}"
         self.departamento_filtro = departamento_filtro if departamento_filtro else default_dept
+        self.target_upn = target_upn
         
-        print(f"DEBUG: Sincronizador inicializado con Departamento='{self.departamento_filtro}'")
+        mode_msg = f"UPN='{self.target_upn}'" if self.target_upn else f"Departamento='{self.departamento_filtro}'"
+        print(f"DEBUG: Sincronizador inicializado con {mode_msg}")
         
         self.teams_encontrados = []
         
@@ -54,28 +56,79 @@ class SincronizadorAutomaticoTeams:
             response = requests.post(url, data=data, verify=False, timeout=10)
             response.raise_for_status()
             self.token = response.json()["access_token"]
+            self.token_expires_at = time.time() + 3500 # 58 minutos aprox de validez segura
             return True
         except Exception as e:
             self.resultados["errores"].append(f"Error de token: {str(e)}")
             return False
+
+    def _ensure_valid_token(self):
+        """Verifica si el token va a expirar y lo renueva"""
+        if not self.token or time.time() > self.token_expires_at:
+            print("🔄 Renovando token de acceso...")
+            self.obtener_token()
+
+    def _request_with_retry(self, method, url, **kwargs):
+        """Wrapper para requests con manejo de Rate Limit (429) y Re-Auth (401)"""
+        self._ensure_valid_token()
+        headers = kwargs.get('headers', {})
+        headers['Authorization'] = f"Bearer {self.token}"
+        kwargs['headers'] = headers
+        
+        intentos = 0
+        max_intentos = 5
+        wait_time = 2
+        
+        while intentos < max_intentos:
+            try:
+                if method == 'POST':
+                    response = requests.post(url, **kwargs)
+                elif method == 'GET':
+                    response = requests.get(url, **kwargs)
+                else:
+                    return None
+                
+                # Manejo de expiración de token en vuelo
+                if response.status_code == 401:
+                    print("⚠️ Token expiró (401). Renovando y reintentando...")
+                    self.obtener_token()
+                    headers['Authorization'] = f"Bearer {self.token}" # Actualizar header
+                    kwargs['headers'] = headers
+                    intentos += 1
+                    continue
+
+                # Manejo de Throttling
+                if response.status_code == 429 or response.status_code == 503:
+                    retry_after = int(response.headers.get('Retry-After', wait_time))
+                    print(f"⏳ Throttling (429/503). Esperando {retry_after}s...")
+                    time.sleep(retry_after)
+                    wait_time *= 2
+                    intentos += 1
+                    continue
+                    
+                return response
+                
+            except requests.exceptions.RequestException as e:
+                print(f"⚠️ Error de red: {e}. Reintentando...")
+                time.sleep(wait_time)
+                intentos += 1
+                wait_time *= 2
+        
+        return None
 
     def obtener_todos_los_teams(self) -> bool:
         """Obtiene todos los equipos que siguen el patrón 'CURSO: MATERIA'"""
         if not self.token:
             return False
         
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json"
-        }
-        
         try:
             teams = []
             url = f"{config.GRAPH_ENDPOINT}/groups?$select=id,displayName&$top=999"
             
+            # Usamos el wrapper para listar equipos también
             while url:
-                response = requests.get(url, headers=headers, verify=False, timeout=15)
-                if response.status_code == 200:
+                response = self._request_with_retry('GET', url, verify=False, timeout=15)
+                if response and response.status_code == 200:
                     data = response.json()
                     for group in data.get('value', []):
                         display_name = group.get('displayName', '')
@@ -92,15 +145,14 @@ class SincronizadorAutomaticoTeams:
             self.resultados["errores"].append(f"Error obteniendo teams: {str(e)}")
             return False
 
-
-    def _consultar_usuarios_por_filtro(self, filtro, headers):
+    def _consultar_usuarios_por_filtro(self, filtro):
         """Helper para consultar usuarios paginados"""
         estudiantes = []
         url = f"{config.GRAPH_ENDPOINT}/users?{filtro}&$select=id,userPrincipalName,jobTitle,displayName&$top=999"
         
         while url:
-            response = requests.get(url, headers=headers, verify=False, timeout=20)
-            if response.status_code == 200:
+            response = self._request_with_retry('GET', url, verify=False, timeout=20)
+            if response and response.status_code == 200:
                 data = response.json()
                 estudiantes.extend(data.get('value', []))
                 url = data.get('@odata.nextLink')
@@ -112,33 +164,35 @@ class SincronizadorAutomaticoTeams:
         """Obtiene todos los usuarios (Intento inteligente Singular/Plural)"""
         try:
             if not self.token: return []
-                
-            headers = {
-                "Authorization": f"Bearer {self.token}",
-                "Content-Type": "application/json",
-                "ConsistencyLevel": "eventual"
-            }
             
-            # 1. Intento original
-            filtro_original = f"$filter=department eq '{self.departamento_filtro}'"
-            print(f"🔍 Buscando estudiantes: '{self.departamento_filtro}'")
-            estudiantes = self._consultar_usuarios_por_filtro(filtro_original, headers)
-            
-            # 2. Intento Plural/Singular si falló
-            if not estudiantes:
-                alternativa = ""
-                if self.departamento_filtro.lower().startswith("estudiante "):
-                    alternativa = self.departamento_filtro.replace("Estudiante ", "Estudiantes ")
-                elif self.departamento_filtro.lower().startswith("estudiantes "):
-                    alternativa = self.departamento_filtro.replace("Estudiantes ", "Estudiante ")
+            # 0. Si hay target_upn, buscar solo ese usuario
+            if self.target_upn:
+                print(f"🔍 Buscando usuario específico: '{self.target_upn}'")
+                filtro_upn = f"$filter=userPrincipalName eq '{self.target_upn}'"
+                estudiantes = self._consultar_usuarios_por_filtro(filtro_upn)
+                if not estudiantes:
+                   print(f"⚠️ Usuario '{self.target_upn}' no encontrado.")
+            else:
+                # 1. Intento original
+                filtro_original = f"$filter=department eq '{self.departamento_filtro}'"
+                print(f"🔍 Buscando estudiantes: '{self.departamento_filtro}'")
+                estudiantes = self._consultar_usuarios_por_filtro(filtro_original)
                 
-                if alternativa:
-                    print(f"⚠️ No encontrados. Probando alternativa: '{alternativa}'")
-                    filtro_alt = f"$filter=department eq '{alternativa}'"
-                    estudiantes = self._consultar_usuarios_por_filtro(filtro_alt, headers)
-                    if estudiantes:
-                        print(f"✅ ¡Encontrados con '{alternativa}'!")
-                        self.departamento_filtro = alternativa # Actualizamos para log
+                # 2. Intento Plural/Singular si falló
+                if not estudiantes:
+                    alternativa = ""
+                    if self.departamento_filtro.lower().startswith("estudiante "):
+                        alternativa = self.departamento_filtro.replace("Estudiante ", "Estudiantes ")
+                    elif self.departamento_filtro.lower().startswith("estudiantes "):
+                        alternativa = self.departamento_filtro.replace("Estudiantes ", "Estudiante ")
+                    
+                    if alternativa:
+                        print(f"⚠️ No encontrados. Probando alternativa: '{alternativa}'")
+                        filtro_alt = f"$filter=department eq '{alternativa}'"
+                        estudiantes = self._consultar_usuarios_por_filtro(filtro_alt)
+                        if estudiantes:
+                            print(f"✅ ¡Encontrados con '{alternativa}'!")
+                            self.departamento_filtro = alternativa # Actualizamos para log
             
             self.resultados["total_estudiantes_tenant"] = len(estudiantes)
             print(f"✅ {len(estudiantes)} estudiantes totales encontrados")
@@ -149,25 +203,31 @@ class SincronizadorAutomaticoTeams:
 
     def agregar_a_team(self, team_id: str, user_id: str) -> tuple:
         """Agrega al usuario como Member al Team"""
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json"
-        }
-        
         url = f"{config.GRAPH_ENDPOINT}/groups/{team_id}/members/$ref"
         body = {"@odata.id": f"https://graph.microsoft.com/v1.0/directoryObjects/{user_id}"}
         
         try:
-            response = requests.post(url, json=body, headers=headers, verify=False, timeout=10)
+            # Usar el wrapper robusto
+            response = self._request_with_retry('POST', url, json=body, verify=False, timeout=10)
+            
+            if response is None:
+                return False, "Error de Red/Timeout"
+
             if response.status_code == 204:
                 return True, "Vinculado"
             elif response.status_code == 400:
                 error = response.json().get('error', {})
-                if "already exists" in error.get('message', '').lower():
+                msg_lower = error.get('message', '').lower()
+                if "already exists" in msg_lower or "one or more added object references already exist" in msg_lower:
                     return True, "Ya en equipo"
-                return False, f"Error: {error.get('message')}"
+                return False, f"Error 400: {error.get('message')}"
             else:
-                return False, f"Status {response.status_code}"
+                try:
+                    err_msg = response.json().get('error', {}).get('message', response.text)
+                except:
+                    err_msg = response.text
+                return False, f"Status {response.status_code}: {err_msg}"
+                
         except Exception as e:
             return False, str(e)
 
@@ -198,8 +258,12 @@ class SincronizadorAutomaticoTeams:
                     equipos_por_curso[curso] = []
                 equipos_por_curso[curso].append(team)
             
+            # Filtrar estudiantes que NO tienen curso (JobTitle) para que no salgan en el log ni en el total
+            estudiantes = [e for e in estudiantes if e.get('jobTitle')]
+            
             total = len(estudiantes)
-            yield {"status": "process", "message": f"Sincronizando {total} estudiantes...", "progress": 25}
+            self.resultados["total_filtrado"] = total
+            yield {"status": "process", "message": f"Sincronizando {total} estudiantes válidos (con curso)...", "progress": 25}
             
             # Procesar cada estudiante
             for idx, est in enumerate(estudiantes):
@@ -210,7 +274,7 @@ class SincronizadorAutomaticoTeams:
                 
                 percent = int(25 + (idx / total) * 70)
                 if idx % 10 == 0: # Evitar saturar el canal SSE con logs de cada estudiante
-                    yield {"status": "process", "message": f"[{idx+1}/{total}] Sincronizando: {nombre}", "progress": percent}
+                    yield {"status": "process", "message": f"[{idx+1}/{total}] Sincronizando: {nombre} ({upn})", "progress": percent}
                 
                 if not curso_est:
                     self.resultados["estudiantes_sin_curso"] += 1
@@ -226,15 +290,17 @@ class SincronizadorAutomaticoTeams:
                         if exito:
                             if msg == "Ya en equipo":
                                 self.resultados["estudiantes_ya_en_equipo"] += 1
+                                # Opcional: No llenar el log visual si ya existe, o usar nivel info
                             else:
                                 self.resultados["estudiantes_vinculados"] += 1
                                 yield {"status": "log", "message": f"   ✅ {nombre} -> {team_name}"}
                         else:
                             self.resultados["errores_vinculacion"] += 1
-                            yield {"status": "log", "message": f"   ❌ Error con {nombre} en {team_name}"}
+                            # CRITICAL FIX: Show the actual error message 'msg'
+                            yield {"status": "log", "message": f"   ❌ Error con {nombre} en {team_name}: {msg}"}
                         
                         self.resultados["estudiantes_procesados"].append({
-                            "Estudiante": upn, "Nombre": nombre, "Curso": curso_est, "Equipo": team_name, "Resultado": msg
+                            "Estudiante": upn, "Nombre": nombre, "Curso": curso_est, "Equipo": team_name, "Resultado": msg, "Exito": exito
                         })
 
             yield {"status": "info", "message": "Guardando reporte final...", "progress": 98}
@@ -242,8 +308,11 @@ class SincronizadorAutomaticoTeams:
             yield {"status": "complete", "message": "Sincronización finalizada", "progress": 100, "results": self.resultados}
             
         except Exception as e:
-            yield {"status": "error", "message": str(e)}
-            self.resultados["errores"].append(str(e))
+            import traceback
+            trace_str = traceback.format_exc()
+            yield {"status": "error", "message": f"CRITICAL ERROR: {str(e)}"}
+            self.resultados["errores"].append(f"{str(e)} | {trace_str}")
+            self.guardar_logs() # Intentar guardar lo que se pueda
             yield {"status": "complete", "results": self.resultados}
 
     def guardar_logs(self):
@@ -261,14 +330,22 @@ class SincronizadorAutomaticoTeams:
                 f.write(f"Total Estudiantes encontrados en Tenant: {self.resultados['total_estudiantes_tenant']}\n")
                 f.write(f"Total Equipos Identificados: {self.resultados['total_equipos']}\n")
                 f.write(f"Estudiantes sin JobTitle (Curso): {self.resultados['estudiantes_sin_curso']}\n")
-                f.write(f"Vínculos Exitantes/Nuevos realizados: {self.resultados['estudiantes_vinculados']}\n")
+                f.write(f"Vínculos Exitosos: {self.resultados['estudiantes_vinculados']}\n")
                 f.write(f"Ya eran miembros: {self.resultados['estudiantes_ya_en_equipo']}\n")
                 f.write(f"Errores de vinculación: {self.resultados['errores_vinculacion']}\n\n")
                 
                 if self.resultados["errores"]:
-                    f.write("ERRORES CRÍTICOS:\n")
+                    f.write("ERRORES DE SISTEMA:\n")
                     for err in self.resultados["errores"]:
                         f.write(f"!!! {err}\n")
+                    f.write("\n")
+                
+                f.write("DETALLE DE OPERACIONES (Muestra):\n")
+                f.write("Estudiante | Equipo | Resultado\n")
+                for item in self.resultados["estudiantes_procesados"]:
+                    # Escribir solo errores o cambios efectivos para no hacer logs de 1GB si son muchos
+                    if not item['Exito'] or item['Resultado'] == 'Vinculado': 
+                         f.write(f"{item['Estudiante']} | {item['Equipo']} | {item['Resultado']}\n")
             
             print(f"📝 Log guardado en: {log_file}")
         except Exception as e:
