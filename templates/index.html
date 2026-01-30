@@ -167,14 +167,16 @@ content %}
   </a>
 
   <!-- Asignar Políticas (Manual) -->
-  <a href="{{ url_for('upload', accion='asignar_politicas') }}" class="card-link">
-    <div class="card card-accent">
+  <!-- Restablecer Contraseña -->
+  <a href="{{ url_for('reset_password') }}" class="card-link">
+    <div class="card card-featured">
+    <div class="card-badge">Soporte</div>
       <div class="card-icon">
-        <i class="fa-solid fa-file-shield"></i>
+        <i class="fa-solid fa-key"></i>
       </div>
-      <h3>Asignar Políticas (Manual)</h3>
-      <p>Cargar archivo específico para asignar políticas a usuarios puntuales.</p>
-      <span class="btn btn-primary">Subir Archivo <i class="fa-solid fa-arrow-up-from-bracket"></i></span>
+      <h3>Restablecimiento Rápido</h3>
+      <p>Buscar usuario por nombre y restablecer contraseña manualmente.</p>
+      <span class="btn btn-primary" style="width:100%">Restablecer <i class="fa-solid fa-wand-magic-sparkles"></i></span>
     </div>
   </a>
 

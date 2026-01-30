@@ -581,5 +581,60 @@ def setup():
 
 
 
+@app.route('/reset_password', methods=['GET'])
+@login_required
+def reset_password():
+    """Interfaz de restablecimiento rápido de contraseñas"""
+    return render_template('reset_password.html')
+
+@app.route('/api/search_user', methods=['GET'])
+@login_required
+def api_search_user():
+    """API para buscar usuarios en Microsoft Graph"""
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+    
+    from scripts.gestion_usuarios import GestorUsuarios
+    gestor = GestorUsuarios()
+    resultados = gestor.buscar_usuarios(query)
+    return jsonify(resultados)
+
+@app.route('/api/reset_password', methods=['POST'])
+@login_required
+def api_reset_password():
+    """API para ejecutar el reset de password"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    password = data.get('password')
+    personal_email = data.get('personal_email')
+    
+    if not user_id or not password:
+        return jsonify({'success': False, 'message': 'Datos incompletos'})
+        
+    from scripts.gestion_usuarios import GestorUsuarios
+    gestor = GestorUsuarios()
+    
+    # 1. Resetear Password
+    success, msg = gestor.restablecer_contrasena(user_id, password)
+    
+    email_sent = False
+    if success and personal_email:
+        # 2. Enviar Correo (si se proporcionó)
+        from scripts.notificador_email import NotificadorEmail
+        notificador = NotificadorEmail()
+        # Necesitamos el nombre para el correo. Lo buscamos o lo pasamos desde el front.
+        # Por simplicidad ahora, enviamos "Usuario".
+        # Idealmente el frontend pasaría el nombre también.
+        
+        ok_mail, msg_mail = notificador.enviar_reset_password(personal_email, "Usuario", password)
+        if ok_mail:
+            email_sent = True
+        else:
+             msg += f" (OJO: No se pudo enviar el correo: {msg_mail})"
+    
+    return jsonify({'success': success, 'message': msg, 'email_sent': email_sent})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

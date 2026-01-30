@@ -99,8 +99,74 @@ class NotificadorEmail:
         except Exception as e:
             print(f"❌ Error crítico enviando correo: {e}")
             return False
+    def enviar_reset_password(self, email_destino, nombre_usuario, password_nueva):
+        """Envía el correo de restablecimiento de contraseña"""
+        if not self.email_sender:
+             return False, "Remitente no configurado"
 
-if __name__ == "__main__":
-    # Prueba rápida si se ejecuta directamente
-    notificador = NotificadorEmail()
-    # notificador.enviar_credenciales("test@ejemplo.com", "Estudiante de Prueba", "prueba@dominio.com", "Temp123!")
+        if not self.token:
+            if not self.obtener_token():
+                return False, "Error de token"
+
+        try:
+            # Usaremos una plantilla simple si no existe archivo
+            # Idealmente crear templates/emails/reset_password.html
+            asunto = f"🔑 Recuperación de Contraseña - {nombre_usuario}"
+            
+            # HTML simple inline para no depender de archivo nuevo ahora mismo
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+                    <h2 style="color: #2563eb;">Hola, {nombre_usuario}</h2>
+                    <p>Se ha realizado una solicitud para restablecer tu contraseña institucional.</p>
+                    <p>Tu nueva contraseña temporal es:</p>
+                    <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 5px; font-size: 1.5em; font-weight: bold; letter-spacing: 2px; color: #1e40af; margin: 20px 0;">
+                        {password_nueva}
+                    </div>
+                    <p>Por favor ingresa a <strong>office.com</strong> con tu correo institucional y esta contraseña nueva.</p>
+                    <p>El sistema te pedirá cambiarla inmediatamente por una personal.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 0.8em; color: #666; text-align: center;">Departamento de Tecnología</p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            
+            # Construir JSON para Microsoft Graph
+            email_data = {
+                "message": {
+                    "subject": asunto,
+                    "body": {
+                        "contentType": "HTML",
+                        "content": html_content
+                    },
+                    "toRecipients": [
+                        {
+                            "emailAddress": {
+                                "address": email_destino
+                            }
+                        }
+                    ]
+                },
+                "saveToSentItems": "true"
+            }
+            
+            # Enviar vía Graph API
+            url = f"{config.GRAPH_ENDPOINT}/users/{self.email_sender}/sendMail"
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(url, headers=headers, json=email_data, verify=False)
+            
+            if response.status_code == 202:
+                print(f"✅ Correo de reset enviado a {email_destino}")
+                return True, "Correo enviado correctamente"
+            else:
+                return False, f"Error API: {response.text}"
+                
+        except Exception as e:
+            return False, f"Error: {str(e)}"
