@@ -72,7 +72,7 @@ class ValidadorTenant:
                     consumidas = sku.get('consumedUnits', 0)
                     
                     match_student = (sku_id == config.LICENSE_STUDENT)
-                    match_faculty = (sku_id == config.LICENSE_FACULTY)
+
                     
                     marca = "   "
                     if match_student: 

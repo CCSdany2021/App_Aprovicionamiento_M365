@@ -273,12 +273,7 @@
                         value="{{ config.LICENSE_STUDENT or '' }}" placeholder="Ej: 314c448c-e53d-4c3e-9d95-17e267123456" required>
                     <div class="help-text">SKU de la licencia a asignar (ej: Microsoft 365 A1 Estudiantes).</div>
                 </div>
-                <div class="form-group">
-                    <label>ID Licencia Profesores (SKU)</label>
-                    <input type="text" name="license_faculty" class="form-control-setup" 
-                        value="{{ config.LICENSE_FACULTY or '' }}" placeholder="Opcional">
-                    <div class="help-text">SKU para docentes (opcional).</div>
-                </div>
+
             </div>
             <div class="alert info" style="margin-top: 1rem;">
                 <i class="fa-solid fa-circle-info"></i> La aplicación en Azure debe tener permisos:

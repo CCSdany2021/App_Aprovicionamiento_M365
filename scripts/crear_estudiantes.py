@@ -136,7 +136,8 @@ class CreadorEstudiantes:
                 return True
             elif response.status_code == 400:
                  # Error común: Licencia no válida o agotada
-                print(f"❌ Error 400 asignando licencia a {codigo_estudiante}: Verifique que el SKU '{config.LICENSE_STUDENT}' sea válido en este tenant.")
+                print(f"❌ Error 400 asignando licencia a {codigo_estudiante}. SKU: '{config.LICENSE_STUDENT}'")
+                print(f"   Detalle: {response.text}") # Mostrar detalle de error de Microsoft
                 return False
             elif response.status_code == 404:
                 print(f"❌ Usuario no encontrado para asignar licencia: {user_email}")

@@ -10,7 +10,7 @@ a = Analysis(
         ('static', 'static'),
         ('scripts', 'scripts'),
         ('plantillas', 'plantillas'),
-        ('archivos', 'archivos')
+
     ],
     hiddenimports=['openpyxl', 'xlsxwriter', 'jinja2.ext'],
     hookspath=[],

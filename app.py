@@ -530,18 +530,18 @@ def setup():
             nueva_pass = request.form.get('admin_password')
             
             data = {
-                'tenant_id': request.form['tenant_id'],
-                'client_id': request.form['client_id'],
-                'client_secret': secreto_final,
-                'colegio_nombre': request.form['colegio_nombre'],
-                'colegio_dominio': request.form['colegio_dominio'],
+                'tenant_id': request.form['tenant_id'].strip(),
+                'client_id': request.form['client_id'].strip(),
+                'client_secret': secreto_final.strip() if secreto_final else None,
+                'colegio_nombre': request.form['colegio_nombre'].strip(),
+                'colegio_dominio': request.form['colegio_dominio'].strip(),
                 'periodo_actual': request.form['periodo_actual'],
-                'admin_user': request.form.get('admin_user', 'admin'),
-                'email_sender': request.form.get('email_sender', f"admin@{request.form['colegio_dominio']}"),
-                'team_fuente_id': request.form.get('team_fuente_id'),
-                'default_city': request.form.get('default_city', 'Bogotá'),
-                'license_student': request.form.get('license_student'),
-                'license_faculty': request.form.get('license_faculty')
+                'admin_user': request.form.get('admin_user', 'admin').strip(),
+                # Use request.form['colegio_dominio'] explicitly because we need the raw value if not stripped yet, but we stripped it above
+                'email_sender': (request.form.get('email_sender') or f"admin@{request.form['colegio_dominio']}").strip(),
+                'team_fuente_id': (request.form.get('team_fuente_id') or '').strip(),
+                'default_city': request.form.get('default_city', 'Bogotá').strip(),
+                'license_student': (request.form.get('license_student') or '').strip(),
             }
             
             # Solo actualizar password si se ingresó uno nuevo

@@ -22,40 +22,44 @@ class ConfiguracionM365:
         db_config = self.gestor.obtener_configuracion()
         
         if db_config:
-            self.TENANT_ID = db_config['tenant_id']
-            self.CLIENT_ID = db_config['client_id']
-            self.CLIENT_SECRET = db_config['client_secret']
+            self.TENANT_ID = db_config['tenant_id'].strip() if db_config['tenant_id'] else None
+            self.CLIENT_ID = db_config['client_id'].strip() if db_config['client_id'] else None
+            self.CLIENT_SECRET = db_config['client_secret'].strip() if db_config['client_secret'] else None
             self.COLEGIO_NOMBRE = db_config['colegio_nombre']
-            self.COLEGIO_DOMINIO = db_config['colegio_dominio']
+            self.COLEGIO_DOMINIO = db_config['colegio_dominio'].strip() if db_config['colegio_dominio'] else None
             self.PERIODO_ACTUAL = db_config['periodo_actual']
             self.ADMIN_USER = db_config['admin_user']
             self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
             self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
-            self.EMAIL_SENDER = db_config['email_sender']
-            self.TEAM_FUENTE_ID = db_config['team_fuente_id']
+            self.EMAIL_SENDER = db_config['email_sender'].strip() if db_config['email_sender'] else None
+            self.TEAM_FUENTE_ID = db_config['team_fuente_id'].strip() if db_config['team_fuente_id'] else None
             self.DEFAULT_CITY = db_config.get('default_city', 'Bogotá')
-            self.LICENSE_STUDENT = db_config.get('license_student')
-            self.LICENSE_FACULTY = db_config.get('license_faculty')
+            self.LICENSE_STUDENT = db_config.get('license_student').strip() if db_config.get('license_student') else None
+
         else:
             # 2. Fallback al .env
-            self.TENANT_ID = os.getenv('TENANT_ID')
-            self.CLIENT_ID = os.getenv('CLIENT_ID')
-            self.CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+            self.TENANT_ID = os.getenv('TENANT_ID').strip() if os.getenv('TENANT_ID') else None
+            self.CLIENT_ID = os.getenv('CLIENT_ID').strip() if os.getenv('CLIENT_ID') else None
+            self.CLIENT_SECRET = os.getenv('CLIENT_SECRET').strip() if os.getenv('CLIENT_SECRET') else None
             self.COLEGIO_NOMBRE = os.getenv('COLEGIO_NOMBRE')
-            self.COLEGIO_DOMINIO = os.getenv('COLEGIO_DOMINIO')
+            self.COLEGIO_DOMINIO = os.getenv('COLEGIO_DOMINIO').strip() if os.getenv('COLEGIO_DOMINIO') else None
             self.PERIODO_ACTUAL = os.getenv('DEFAULT_DEPARTMENT', 'Estudiantes 2026').split()[-1]
             self.ADMIN_USER = os.getenv('ADMIN_USER', 'admin')
             self.ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
             self.ADMIN_PASSWORD_HASH = generate_password_hash(self.ADMIN_PASSWORD) if self.ADMIN_PASSWORD else None
-            self.EMAIL_SENDER = os.getenv('EMAIL_SENDER')
-            self.TEAM_FUENTE_ID = os.getenv('TEAM_FUENTE_ID')
+            self.EMAIL_SENDER = os.getenv('EMAIL_SENDER').strip() if os.getenv('EMAIL_SENDER') else None
+            self.TEAM_FUENTE_ID = os.getenv('TEAM_FUENTE_ID').strip() if os.getenv('TEAM_FUENTE_ID') else None
             
             # Licencias fallback
-            self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT')
-            self.LICENSE_FACULTY = os.getenv('LICENSE_FACULTY')
+            self.LICENSE_STUDENT = os.getenv('LICENSE_STUDENT').strip() if os.getenv('LICENSE_STUDENT') else None
+            self.LICENSE_FACULTY = None
 
         # Configuración Microsoft 365 Invariante
-        self.AUTHORITY = os.getenv('AUTHORITY', f"https://login.microsoftonline.com/{self.TENANT_ID}")
+        if self.TENANT_ID:
+            self.AUTHORITY = os.getenv('AUTHORITY', f"https://login.microsoftonline.com/{self.TENANT_ID}")
+        else:
+             self.AUTHORITY = None
+             
         self.GRAPH_ENDPOINT = os.getenv('GRAPH_ENDPOINT', 'https://graph.microsoft.com/v1.0')
         
         # Configuración del colegio (ya cargada arriba)
