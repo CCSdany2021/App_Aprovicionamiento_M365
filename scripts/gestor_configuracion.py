@@ -12,8 +12,8 @@ class GestorConfiguracion:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._inicializar_db()
         
-        # Llave para cifrado
-        self.key_path = 'archivos/.key'
+        # Llave para cifrado (al lado de la DB)
+        self.key_path = os.path.join(os.path.dirname(self.db_path), '.config_key')
         self._cargar_o_generar_llave()
         self.cipher = Fernet(self.key)
 

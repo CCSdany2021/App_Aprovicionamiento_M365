@@ -235,7 +235,7 @@ def procesar_accion(accion, filepath, **kwargs):
         resultados = vinculador.ejecutar(filepath)
     
     elif accion == 'sincronizacion_automatica':
-        sincronizador = SincronizadorAutomaticoTeams(departamento_filtro="Estudiantes 2026")
+        sincronizador = SincronizadorAutomaticoTeams(departamento_filtro=config.DEFAULT_DEPARTMENT)
         # Para llamadas síncronas, agotamos el generador y tomamos el último resultado
         res_list = list(sincronizador.ejecutar())
         if res_list:
@@ -519,7 +519,18 @@ def setup():
         flash('Debes iniciar sesión para modificar la configuración existente.', 'warning')
         return redirect(url_for('login'))
 
-    gestor = GestorConfiguracion()
+    # Asegurar ruta DB persistente
+    import os, sys
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # IMPORTANTE: Misma ruta que en configuracion.py
+    resultados_path = os.path.join(base_path, 'resultados')
+    db_path = os.path.join(resultados_path, 'configuracion.db')
+    
+    gestor = GestorConfiguracion(db_path=db_path)
     
     if request.method == 'POST':
         try:

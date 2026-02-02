@@ -17,8 +17,23 @@ class ConfiguracionM365:
     """Clase para manejar toda la configuración del proyecto"""
     
     def __init__(self):
-        # 1. Cargar desde DB si existe
-        self.gestor = GestorConfiguracion()
+        # 0. Definir rutas persistentes primero
+        import sys
+        if getattr(sys, 'frozen', False):
+            base_path = os.path.dirname(sys.executable)
+        else:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', os.path.join(base_path, 'resultados'))
+        self.CARPETA_LOGS = os.getenv('CARPETA_LOGS', os.path.join(self.CARPETA_RESULTADOS, 'logs'))
+        
+        # Asegurar que existan
+        os.makedirs(self.CARPETA_RESULTADOS, exist_ok=True)
+        os.makedirs(self.CARPETA_LOGS, exist_ok=True)
+
+        # 1. Cargar desde DB (usando ruta absoluta persistente)
+        db_path = os.path.join(self.CARPETA_RESULTADOS, 'configuracion.db')
+        self.gestor = GestorConfiguracion(db_path=db_path)
         db_config = self.gestor.obtener_configuracion()
         
         if db_config:

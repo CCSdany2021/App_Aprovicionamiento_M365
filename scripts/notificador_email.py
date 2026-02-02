@@ -116,18 +116,35 @@ class NotificadorEmail:
             # HTML simple inline para no depender de archivo nuevo ahora mismo
             html_content = f"""
             <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
-                    <h2 style="color: #2563eb;">Hola, {nombre_usuario}</h2>
-                    <p>Se ha realizado una solicitud para restablecer tu contraseña institucional.</p>
-                    <p>Tu nueva contraseña temporal es:</p>
-                    <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 5px; font-size: 1.5em; font-weight: bold; letter-spacing: 2px; color: #1e40af; margin: 20px 0;">
-                        {password_nueva}
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; line-height: 1.6;">
+                <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <div style="background-color: #2563eb; padding: 20px; text-align: center;">
+                        <h2 style="color: white; margin: 0; font-size: 24px;">🔐 Recuperación de Acceso</h2>
                     </div>
-                    <p>Por favor ingresa a <strong>office.com</strong> con tu correo institucional y esta contraseña nueva.</p>
-                    <p>El sistema te pedirá cambiarla inmediatamente por una personal.</p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 0.8em; color: #666; text-align: center;">Departamento de Tecnología</p>
+                    
+                    <div style="padding: 30px 25px;">
+                        <h3 style="color: #1f2937; margin-top: 0;">Hola, {nombre_usuario}</h3>
+                        <p style="color: #4b5563;">Has solicitado restablecer tu contraseña para la cuenta institucional de Microsoft 365.</p>
+                        
+                        <p style="margin-bottom: 20px;">Tu nueva contraseña temporal es:</p>
+                        
+                        <div style="background-color: #eff6ff; border: 2px dashed #bfdbfe; padding: 20px; text-align: center; border-radius: 8px; margin: 25px 0;">
+                            <span style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #1e40af; font-family: monospace;">{password_nueva}</span>
+                        </div>
+                        
+                        <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; font-size: 14px; color: #92400e;">
+                            <strong>⚠️ Importante:</strong> Esta contraseña es temporal. Al iniciar sesión se te pedirá crear una nueva contraseña PERSONAL que solo tú conozcas.
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="https://www.office.com" style="background-color: #2563eb; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Iniciar Sesión en Office.com</a>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af;">
+                        <p style="margin: 0;">Este es un mensaje automático del sistema de Tecnología.</p>
+                        <p style="margin: 5px 0 0 0;">No respondas a este correo.</p>
+                    </div>
                 </div>
             </body>
             </html>
