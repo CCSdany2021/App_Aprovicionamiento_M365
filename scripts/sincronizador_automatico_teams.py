@@ -21,7 +21,8 @@ class SincronizadorAutomaticoTeams:
         
         self.token = None
         # Obtener periodo de la configuración dinámica
-        default_dept = config.DEFAULT_DEPARTMENT if hasattr(config, 'DEFAULT_DEPARTMENT') and config.DEFAULT_DEPARTMENT else f"Estudiantes {config.PERIODO_ACTUAL}"
+        default_dept = config.DEFAULT_DEPARTMENT if hasattr(config, 'DEFAULT_DEPARTMENT') and config.DEFAULT_DEPARTMENT else f"Estudiante {config.PERIODO_ACTUAL}"
+        if not default_dept: default_dept = "Estudiante 2026"
         self.departamento_filtro = departamento_filtro if departamento_filtro else default_dept
         self.target_upn = target_upn
         
