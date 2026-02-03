@@ -45,7 +45,7 @@ class ConfiguracionM365:
             self.PERIODO_ACTUAL = db_config['periodo_actual']
             self.ADMIN_USER = db_config['admin_user']
             self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
-            self.ADMIN_PASSWORD_HASH = db_config['admin_password_hash']
+
             self.EMAIL_SENDER = db_config['email_sender'].strip() if db_config['email_sender'] else None
             self.TEAM_FUENTE_ID = db_config['team_fuente_id'].strip() if db_config['team_fuente_id'] else None
             self.DEFAULT_CITY = db_config.get('default_city', 'Bogotá')
@@ -104,9 +104,7 @@ class ConfiguracionM365:
         self.CARPETA_RESULTADOS = os.getenv('CARPETA_RESULTADOS', os.path.join(base_path, 'resultados'))
         self.CARPETA_LOGS = os.getenv('CARPETA_LOGS', os.path.join(self.CARPETA_RESULTADOS, 'logs'))
         
-        # Credenciales Admin
-        self.ADMIN_USER = os.getenv('ADMIN_USER', 'admin')
-        self.ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+
 
         # Logging
         self.LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

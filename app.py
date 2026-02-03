@@ -61,7 +61,7 @@ def login():
         
         # Validar contra los valores cargados en config (que ya vienen de DB o .env)
         es_usuario_valido = False
-        if username == config.ADMIN_USER:
+        if username.strip().lower() == config.ADMIN_USER.strip().lower():
             if config.ADMIN_PASSWORD_HASH:
                 es_usuario_valido = check_password_hash(config.ADMIN_PASSWORD_HASH, password)
             else:
