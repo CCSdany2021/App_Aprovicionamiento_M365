@@ -238,30 +238,41 @@ class VinculadorEstudiantesTeams:
                 percent = int(20 + (idx / total_equipos) * 75)
                 yield {"status": "process", "message": f"[{idx+1}/{total_equipos}] Trabajando en: {display_name}", "progress": percent}
                 
-                # LÓGICA DE MATCHING MEJORADA (Exacto + Padre/Nivel - Dinámico)
+                # LÓGICA DE MATCHING MEJORADA (Exacto + Padre/Nivel - Dinámico + Ceros)
                 estudiantes_para_vincular = []
                 
-                # 1. Coincidencia Exacta
+                # Normalizar curso equipo (09 -> 9)
+                curso_equipo_norm = curso_equipo.lstrip('0')
+                
+                # 1. Coincidencia Exacta (Directa)
                 if curso_equipo in estudiantes_por_curso:
                     estudiantes_para_vincular.extend(estudiantes_por_curso[curso_equipo])
                     
-                # 2. Coincidencia de Nivel Dinámica (Soporta 9A, 9B, 901, etc.)
-                prefix_len = len(curso_equipo)
+                # 2. Coincidencia Cruzada Normalizada
+                prefix_len = len(curso_equipo_norm)
                 
-                # Iteramos sobre todos los cursos disponibles en el archivo
                 for curso_est in estudiantes_por_curso.keys():
-                     if len(curso_est) > prefix_len and curso_est.startswith(curso_equipo):
+                     # Normalizar curso estudiante (09A -> 9A)
+                     curso_est_norm = curso_est.lstrip('0')
+                     
+                     # A. Exacto Normalizado (9A == 09A)
+                     if curso_est_norm == curso_equipo_norm:
+                         if curso_est != curso_equipo: # Evitar duplicados
+                             estudiantes_para_vincular.extend(estudiantes_por_curso[curso_est])
+                         continue
+
+                     # B. Prefijo/Padre Normalizado (9 match 09A)
+                     if len(curso_est_norm) > prefix_len and curso_est_norm.startswith(curso_equipo_norm):
                         
-                        next_char = curso_est[prefix_len]
+                        next_char = curso_est_norm[prefix_len]
                         es_match_valido = False
                         
                         if next_char.isdigit():
-                            # Regla Estricta Numérica: Evitar 1 -> 10, 1 -> 11
-                            # Se asume que si el siguiente es número, debe ser una jerarquía profunda (ej: 1 -> 101)
-                            if len(curso_est) - prefix_len >= 2:
+                            # Regla Estricta Numérica
+                            if len(curso_est_norm) - prefix_len >= 2:
                                 es_match_valido = True
                         else:
-                            # Regla Alfanumérica: 9A, 9-B, 9B -> Válido siempre
+                            # Regla Alfanumérica
                             es_match_valido = True
                             
                         if es_match_valido:
