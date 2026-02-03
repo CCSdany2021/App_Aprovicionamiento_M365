@@ -280,8 +280,47 @@ class SincronizadorAutomaticoTeams:
                     self.resultados["estudiantes_sin_curso"] += 1
                     continue
                 
+                # BUSQUEDA INTELIGENTE DE EQUIPOS (Exacto + Padre)
+                equipos_destino = []
+                
+                # 1. Coincidencia Exacta
                 if curso_est in equipos_por_curso:
-                    for team in equipos_por_curso[curso_est]:
+                    equipos_destino.extend(equipos_por_curso[curso_est])
+                
+                # 2. Coincidencia por Nivel/Padre (Soporte Dinámico: 901, 9A, 9-B, etc.)
+                for codigo_curso_team in equipos_por_curso.keys():
+                    prefix_len = len(codigo_curso_team)
+                    
+                    # Debe empezar con el prefijo y ser más largo
+                    if len(curso_est) > prefix_len and curso_est.startswith(codigo_curso_team):
+                        
+                        # Análisis del caracter siguiente al prefijo para evitar falsos positivos
+                        # Ejemplo Falso: Prefijo "1" vs Curso "10" -> Siguiente char es "0" (Dígito) -> PELIGRO
+                        # Ejemplo Real: Prefijo "1" vs Curso "101" -> Siguiente char es "0" (Dígito) -> OK si diferencia longitud >= 2
+                        # Ejemplo Real: Prefijo "9" vs Curso "9A"  -> Siguiente char es "A" (No Dígito) -> OK siempre
+                        
+                        next_char = curso_est[prefix_len]
+                        
+                        es_match_valido = False
+                        
+                        if next_char.isdigit():
+                            # Si sigue un número, aplicamos reglas estricas de jerarquía numérica
+                            # Nivel 1 (1 dígito) requiere cursos de 3 dígitos (101). Dif >= 2
+                            # Nivel 10 (2 dígitos) requiere cursos de 4 dígitos (1001). Dif >= 2
+                            if len(curso_est) - prefix_len >= 2:
+                                es_match_valido = True
+                        else:
+                            # Si sigue una letra o símbolo (A, B, -, space), es un sub-grupo válido
+                            # Ej: 9A, 9-B, 9 B
+                            es_match_valido = True
+                            
+                        if es_match_valido:
+                             # Evitar duplicados si ya estaba en coincidencia exacta
+                             nuevos_teams = [t for t in equipos_por_curso[codigo_curso_team] if t not in equipos_destino]
+                             equipos_destino.extend(nuevos_teams)
+
+                if equipos_destino:
+                    for team in equipos_destino:
                         team_id = team['id']
                         team_name = team['displayName']
                         
@@ -293,7 +332,7 @@ class SincronizadorAutomaticoTeams:
                                 # Opcional: No llenar el log visual si ya existe, o usar nivel info
                             else:
                                 self.resultados["estudiantes_vinculados"] += 1
-                                yield {"status": "log", "message": f"   ✅ {nombre} -> {team_name}"}
+                                yield {"status": "log", "message": f"   ✅ {nombre} ({curso_est}) -> {team_name}"}
                         else:
                             self.resultados["errores_vinculacion"] += 1
                             # CRITICAL FIX: Show the actual error message 'msg'

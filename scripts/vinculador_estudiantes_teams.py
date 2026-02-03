@@ -238,8 +238,40 @@ class VinculadorEstudiantesTeams:
                 percent = int(20 + (idx / total_equipos) * 75)
                 yield {"status": "process", "message": f"[{idx+1}/{total_equipos}] Trabajando en: {display_name}", "progress": percent}
                 
+                # LÓGICA DE MATCHING MEJORADA (Exacto + Padre/Nivel - Dinámico)
+                estudiantes_para_vincular = []
+                
+                # 1. Coincidencia Exacta
                 if curso_equipo in estudiantes_por_curso:
-                    lista_estudiantes = estudiantes_por_curso[curso_equipo]
+                    estudiantes_para_vincular.extend(estudiantes_por_curso[curso_equipo])
+                    
+                # 2. Coincidencia de Nivel Dinámica (Soporta 9A, 9B, 901, etc.)
+                prefix_len = len(curso_equipo)
+                
+                # Iteramos sobre todos los cursos disponibles en el archivo
+                for curso_est in estudiantes_por_curso.keys():
+                     if len(curso_est) > prefix_len and curso_est.startswith(curso_equipo):
+                        
+                        next_char = curso_est[prefix_len]
+                        es_match_valido = False
+                        
+                        if next_char.isdigit():
+                            # Regla Estricta Numérica: Evitar 1 -> 10, 1 -> 11
+                            # Se asume que si el siguiente es número, debe ser una jerarquía profunda (ej: 1 -> 101)
+                            if len(curso_est) - prefix_len >= 2:
+                                es_match_valido = True
+                        else:
+                            # Regla Alfanumérica: 9A, 9-B, 9B -> Válido siempre
+                            es_match_valido = True
+                            
+                        if es_match_valido:
+                             estudiantes_para_vincular.extend(estudiantes_por_curso[curso_est])
+
+                # Eliminar duplicados de IDs
+                estudiantes_para_vincular = list(set(estudiantes_para_vincular))
+
+                if estudiantes_para_vincular:
+                    lista_estudiantes = estudiantes_para_vincular
                     vinculados_equipo = 0
                     errores_equipo = 0
                     
