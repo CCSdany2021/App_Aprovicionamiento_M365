@@ -80,7 +80,7 @@ class VinculadorEstudiantesTeams:
                     data = response.json()
                     for group in data.get('value', []):
                         display_name = group.get('displayName', '')
-                        if ": " in display_name:
+                        if ": " in display_name or ":" in display_name:
                             teams.append(group)
                     url = data.get('@odata.nextLink')
                 else:
