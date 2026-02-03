@@ -326,7 +326,7 @@ class SincronizadorAutomaticoTeams:
                             
                         if es_match_valido:
                              nuevos = [t for t in equipos_por_curso[codigo_curso_team] if t not in equipos_destino]
-                             equipos_destino.extend(nuevos)                             equipos_destino.extend(nuevos_teams)
+                             equipos_destino.extend(nuevos)
 
                 if equipos_destino:
                     for team in equipos_destino:
