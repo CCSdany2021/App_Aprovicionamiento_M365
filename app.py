@@ -288,18 +288,49 @@ def stream_process():
             objeto_proceso = VinculadorEstudiantesTeams()
             gen = objeto_proceso.ejecutar(filepath)
         elif accion == 'aprovisionar_grupos':
-            # Nota: Necesita refactor similar para streaming
-            # Por ahora usamos wrapper síncrono simulado o refactorizamos la clase también
-            # Asumiremos que el usuario quiere ver algo, aunque sea un spinner, 
-            # pero para usar progress.html real necesitamos refactorizar `GestorAprovisionamientoGruposSimplificado`
-            # Como no lo hice en este turno aun, lanzaré error o mock.
-            # ERROR DE DISEÑO: No puedo llamar .ejecutar() si no existe.
-            # SOLUCIÓN: Usar VaciadorEquipos() para 'desvincular', etc. si tienen el método.
-            # Para este turno SOLO habilité EliminadorEstudiantes y EliminadorTeams.
-            # Los otros darán error si no los actualizo.
-            # Voy a asumir que solo actualicé esos dos críticos mencionados.
-            # Revertiré este cambio de "todos" a solo los soportados.
+            # Nota: Esto es el aprovisionamiento de estudiantes A grupos, no la gestión de grupos en sí.
+            # Se requiere agregar soporte streaming si se desea usar, 
+            # por ahora dejamos pass para evitar errores si llega aquí.
             pass
+            # Nota: Esto es el aprovisionamiento de estudiantes A grupos, no la gestión de grupos en sí.
+            # Para gestión de grupos usamos acciones nuevas abajo.
+            pass
+
+        # --- NUEVAS ACCIONES GESTIÓN GRUPOS SEGURIDAD ---
+        elif accion == 'gestion_grupos_inventario':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('inventario_completo')
+            
+        elif accion == 'gestion_grupos_vacios':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('reporte_vacios')
+            
+        elif accion == 'gestion_grupos_crear':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('crear_masivo', filepath=filepath)
+            
+        elif accion == 'gestion_grupos_miembros':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            # El nombre del grupo viene en kwargs o filename hack
+            # Usaremos request.args mejor si fuera GET, pero el stream_process recibe parametros
+            nombre_grupo = request.args.get('grupo', '')
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('exportar_miembros', grupo_target=nombre_grupo)
+        elif accion == 'gestion_grupos_agregar_individual':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            usuario = request.args.get('usuario')
+            grupo = request.args.get('grupo')
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('_agregar_miembros', mode='individual', usuario=usuario, grupo=grupo)
+
+        elif accion == 'gestion_grupos_agregar_masivo':
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            objeto_proceso = GestorGruposSeguridadV2()
+            gen = objeto_proceso.ejecutar('_agregar_miembros', mode='masivo', filepath=filepath)
+
         elif accion == 'sync_teams':
             objeto_proceso = SincronizadorAutomaticoTeams() # Usa default del .env ("Estudiante 2026")
             gen = objeto_proceso.ejecutar()
@@ -460,6 +491,47 @@ def descargar_log(filename):
         return redirect(url_for('logs'))
 
 
+@app.route('/gestion_grupos_dashboard')
+@login_required
+def gestion_grupos_dashboard():
+    """Dashboard específico para Gestión de Grupos de Seguridad"""
+    return render_template('gestion_grupos.html')
+
+@app.route('/gestion_grupos_accion', methods=['POST'])
+@login_required
+def gestion_grupos_accion():
+    """Manejador de acciones rápidas del dashboard de grupos"""
+    tipo = request.form.get('tipo_accion')
+    
+    if tipo == 'inventario':
+        return render_template('progress.html', 
+                               titulo="Generando Inventario de Grupos",
+                               endpoint=url_for('stream_process', accion='gestion_grupos_inventario'),
+                               proxima_ruta=url_for('ver_resultados'))
+                               
+    elif tipo == 'vacios':
+        return render_template('progress.html', 
+                               titulo="Auditando Grupos Vacíos",
+                               endpoint=url_for('stream_process', accion='gestion_grupos_vacios'),
+                               proxima_ruta=url_for('ver_resultados'))
+                               
+    elif tipo == 'miembros':
+        nombre = request.form.get('nombre_grupo')
+        return render_template('progress.html', 
+                               titulo=f"Exportando Miembros: {nombre}",
+                               endpoint=url_for('stream_process', accion='gestion_grupos_miembros', grupo=nombre),
+                               proxima_ruta=url_for('ver_resultados'))
+                               
+    elif tipo == 'agregar_individual':
+        usuario = request.form.get('usuario')
+        grupo = request.form.get('grupo')
+        return render_template('progress.html', 
+                               titulo=f"Agregando Usuario a Grupo",
+                               endpoint=url_for('stream_process', accion='gestion_grupos_agregar_individual', usuario=usuario, grupo=grupo),
+                               proxima_ruta=url_for('gestion_grupos_dashboard'))
+                               
+    return redirect(url_for('gestion_grupos_dashboard'))
+
 @app.route('/descargar_inventario')
 @login_required
 def descargar_inventario():
@@ -482,6 +554,41 @@ def descargar_inventario():
 def descargar_plantilla(tipo):
     """Descarga plantillas para los procesos"""
     try:
+        if tipo == 'grupos_seguridad':
+            # Generar on-the-fly usando la nueva clase V2
+            from scripts.gestion_grupos_seguridad_v2 import GestorGruposSeguridadV2
+            # Hack: instanciamos y usamos pandas directo para devolverlo
+            data = [{
+                "NombreGrupo": "Profesores 2026",
+                "MailNickname": "profesores2026",
+                "Descripcion": "Grupo de seguridad para profesores",
+                "RequiereCorreo": "NO"
+            }, {
+                "NombreGrupo": "Coordinación - Notificaciones",
+                "MailNickname": "coordinacion_notif",
+                "Descripcion": "Grupo habilitado con correo",
+                "RequiereCorreo": "SI"
+            }]
+            df = pd.DataFrame(data)
+            
+            # Guardamos temp para enviar
+            temp_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Plantilla_Grupos_Seguridad.xlsx')
+            df.to_excel(temp_path, index=False)
+            return send_file(temp_path, as_attachment=True, download_name='Plantilla_Crear_Grupos.xlsx')
+
+        if tipo == 'agregar_miembros':
+            data = [{
+                "Usuario": "ejemplo@colegio.edu.co",
+                "NombreGrupo": "Profesores 2026"
+            }, {
+                "Usuario": "admin@colegio.edu.co",
+                "NombreGrupo": "Administrativos"
+            }]
+            df = pd.DataFrame(data)
+            temp_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Plantilla_Agregar_Miembros.xlsx')
+            df.to_excel(temp_path, index=False)
+            return send_file(temp_path, as_attachment=True, download_name='Plantilla_Agregar_Miembros.xlsx')
+
         mapeo_plantillas = {
             'crear': 'plantilla_crear_estudiantes.xlsx',
             'actualizar': 'plantilla_actualizar_estudiantes.xlsx',

@@ -1,0 +1,97 @@
+
+{% extends "base.html" %} 
+{% block header %}Gestión de Grupos de Seguridad{% endblock %} 
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card-grid">
+            
+            <!-- 1. Inventario -->
+            <div class="card card-featured">
+                <div class="card-badge">Reporte</div>
+                <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
+                <h3>Inventario General</h3>
+                <p>Descargar Excel con TODOS los grupos de seguridad y su estado.</p>
+                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                    <input type="hidden" name="tipo_accion" value="inventario">
+                    <button type="submit" class="btn btn-primary btn-full">Generar Inventario <i class="fa-solid fa-download"></i></button>
+                </form>
+            </div>
+
+            <!-- 2. Exportar Miembros -->
+            <div class="card">
+                <div class="card-icon"><i class="fa-solid fa-users-viewfinder"></i></div>
+                <h3>Exportar Miembros</h3>
+                <p>Descargar lista de usuarios de un grupo específico.</p>
+                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                    <input type="hidden" name="tipo_accion" value="miembros">
+                    <div class="mb-3">
+                        <input type="text" name="nombre_grupo" class="form-control" placeholder="Nombre del grupo (ej. Profesores)" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Buscar y Exportar <i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </div>
+
+            <!-- 3. Crear Masivamente -->
+            <div class="card card-accent">
+                <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <h3>Crear Grupos Masivos</h3>
+                <p>Cargar Excel para crear múltiples grupos automáticamente.</p>
+                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <a href="{{ url_for('upload', accion='gestion_grupos_crear') }}" class="btn btn-primary" style="flex: 1;">Crear <i class="fa-solid fa-upload"></i></a>
+                    <a href="{{ url_for('descargar_plantilla', tipo='grupos_seguridad') }}" class="btn btn-secondary" title="Plantilla"><i class="fa-solid fa-download"></i></a>
+                </div>
+            </div>
+
+            <!-- 4. Grupos Vacíos -->
+            <div class="card card-warning">
+                <div class="card-icon"><i class="fa-solid fa-broom"></i></div>
+                <h3>Auditoría: Grupos Vacíos</h3>
+                <p>Detectar grupos que NO tienen miembros para limpieza.</p>
+                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                    <input type="hidden" name="tipo_accion" value="vacios">
+                    <button type="submit" class="btn btn-warning btn-full">Analizar Tenant <i class="fa-solid fa-stethoscope"></i></button>
+                </form>
+            </div>
+
+
+            <!-- 5. Agregar Usuario Individual -->
+            <div class="card card-success">
+                <div class="card-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h3>Agregar Miembro Rápido</h3>
+                <p>Vincular un usuario a un grupo existente.</p>
+                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                    <input type="hidden" name="tipo_accion" value="agregar_individual">
+                    <div class="mb-2">
+                        <input type="text" name="usuario" class="form-control" placeholder="Email o UPN Usuario" required style="font-size:0.9rem">
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" name="grupo" class="form-control" placeholder="Nombre del Grupo Destino" required style="font-size:0.9rem">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-full">Agregar <i class="fa-solid fa-plus"></i></button>
+                </form>
+            </div>
+
+            <!-- 6. Agregar Masivo -->
+            <div class="card card-featured">
+                <div class="card-badge">Importar</div>
+                <div class="card-icon"><i class="fa-solid fa-file-csv"></i></div>
+                <h3>Cargar Miembros Masivos</h3>
+                <p>Subir Excel con columnas: <b>Usuario, NombreGrupo</b>.</p>
+                <div style="display: flex; gap: 0.5rem; width: 100%; margin-top: auto;">
+                    <a href="{{ url_for('upload', accion='gestion_grupos_agregar_masivo') }}" class="btn btn-primary" style="flex: 1;">Subir Excel <i class="fa-solid fa-upload"></i></a>
+                    <a href="{{ url_for('descargar_plantilla', tipo='agregar_miembros') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Volver al Dashboard Principal
+    </a>
+</div>
+{% endblock %}

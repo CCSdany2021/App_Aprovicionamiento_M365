@@ -15,7 +15,7 @@ Esta guía explica cómo desplegar la aplicación en un nuevo colegio sin necesi
     .\venv\Scripts\activate
     pip install -r requirements.txt
     ```
-3.  **Lanzar el sistema**:
+3.  **Lanzar el sistema**:pyh
     ```bash
     python app.py
     ```
