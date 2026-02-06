@@ -1,220 +1,253 @@
 {% extends "base.html" %} {% block header %}Dashboard{% endblock %} {% block
 content %}
+<!-- SECCIÓN: ESTUDIANTES -->
+<h3 class="section-title" style="margin: 20px 0 10px; color: var(--text-light); font-weight: 500; font-size: 0.9rem; text-transform: uppercase;">Estudiantes</h3>
 <div class="card-grid">
   <!-- Crear Estudiantes -->
   <div class="card">
-    <div class="card-icon">
-      <i class="fa-solid fa-user-plus"></i>
+    <div class="card-header">
+      <span>Crear Estudiantes</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
     </div>
-    <h3>Crear Estudiantes</h3>
-    <p>Importar nuevos estudiantes masivamente desde Excel o CSV.</p>
-    <div style="display: flex; gap: 0.5rem; width: 100%;">
-      <a href="{{ url_for('upload', accion='crear') }}" class="btn btn-primary" style="flex: 1;">Iniciar <i
-          class="fa-solid fa-arrow-right"></i></a>
-      <a href="{{ url_for('descargar_plantilla', tipo='crear') }}" class="btn btn-secondary"
-        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    <div class="card-body">
+      <div class="card-icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <p>Importación masiva desde Excel/CSV</p>
+    </div>
+    <div class="card-footer">
+      <a href="{{ url_for('upload', accion='crear') }}" class="btn btn-primary">INICIAR</a>
     </div>
   </div>
 
   <!-- Actualizar Estudiantes -->
   <div class="card">
-    <div class="card-icon">
-      <i class="fa-solid fa-user-pen"></i>
+    <div class="card-header">
+      <span>Actualizar Estudiantes</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
     </div>
-    <h3>Actualizar Estudiantes</h3>
-    <p>Modifica atributos de Entra ID a estudiantes existentes en el tenant periodo 2026.</p>
-    <div style="display: flex; gap: 0.5rem; width: 100%;">
-      <a href="{{ url_for('upload', accion='actualizar') }}" class="btn btn-primary" style="flex: 1;">Actualizar <i
-          class="fa-solid fa-arrow-right"></i></a>
-      <a href="{{ url_for('descargar_plantilla', tipo='actualizar') }}" class="btn btn-secondary"
-        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    <div class="card-body">
+      <div class="card-icon">
+         <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <p>Modificar atributos en Azure AD</p>
+    </div>
+    <div class="card-footer">
+      <a href="{{ url_for('upload', accion='actualizar') }}" class="btn btn-primary">ACTUALIZAR</a>
     </div>
   </div>
 
   <!-- Eliminar Estudiantes -->
   <div class="card card-danger">
-    <div class="card-icon">
-      <i class="fa-solid fa-user-minus"></i>
+     <div class="card-header">
+      <span>Eliminar Estudiantes</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
     </div>
-    <h3>Eliminar Estudiantes</h3>
-    <p>Eliminar usuarios del tenant (irreversible).</p>
-    <div style="display: flex; gap: 0.5rem; width: 100%;">
-      <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-danger" style="flex: 1;">Eliminar <i
-          class="fa-solid fa-trash"></i></a>
-      <a href="{{ url_for('descargar_plantilla', tipo='eliminar') }}" class="btn btn-secondary"
-        title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+    <div class="card-body">
+      <div class="card-icon">
+        <i class="fa-solid fa-circle-exclamation"></i>
+      </div>
+      <p>Eliminación irreversible</p>
+    </div>
+    <div class="card-footer">
+      <a href="{{ url_for('upload', accion='eliminar') }}" class="btn btn-primary" style="background-color: var(--danger); border-color: var(--danger);">ELIMINAR</a>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN: TEAMS -->
+<h3 class="section-title" style="margin: 30px 0 10px; color: var(--text-light); font-weight: 500; font-size: 0.9rem; text-transform: uppercase;">Microsoft Teams</h3>
+<div class="card-grid">
+  <!-- Sincronización Automática -->
+  <div class="card card-featured">
+    <div class="card-badge">AUTO</div>
+    <div class="card-header">
+      <span>Sincronización Teams</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body" style="padding: 15px;">
+        <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 10px;">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <p style="margin-bottom: 10px;">Vinculación automática y masiva</p>
+        
+        <!-- Single User Form -->
+        <form action="{{ url_for('sync_teams') }}" method="POST" style="width: 100%; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <div style="display: flex; gap: 5px;">
+                <input type="email" name="single_upn" placeholder="Sincronizar uno..." style="padding: 5px; font-size: 0.85rem; border: 1px solid #ddd; border-radius: 3px; width: 100%;">
+                <button type="submit" class="btn btn-primary" title="Sincronizar Uno" style="padding: 5px 10px; min-width: auto;">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <form action="{{ url_for('sync_teams') }}" method="POST" onsubmit="return confirm('¿Iniciar sincronización masiva?')">
+          <button type="submit" class="btn btn-primary">SINCRONIZAR MASIVO</button>
+        </form>
     </div>
   </div>
 
-  <!-- Inventario de Equipos -->
-  <a href="{{ url_for('descargar_inventario') }}" class="card-link">
-    <div class="card card-success">
+  <!-- Crear Teams -->
+  <div class="card">
+    <div class="card-header">
+      <span>Crear Equipos</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="fa-solid fa-users-viewfinder"></i>
+        </div>
+        <p>Creación con múltiples owners</p>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="btn btn-primary">CREAR</a>
+    </div>
+  </div>
+
+  <!-- Políticas Teams -->
+  <div class="card card-accent">
+    <div class="card-badge">EDU</div>
+    <div class="card-header">
+      <span>Políticas Teams</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
+      <div class="card-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <p>Aplicar políticas de seguridad</p>
+    </div>
+    <div class="card-footer">
+        <form action="{{ url_for('sync_policies') }}" method="POST" onsubmit="return confirm('¿Aplicar políticas?')">
+            <button type="submit" class="btn btn-primary">APLICAR</button>
+        </form>
+    </div>
+  </div>
+
+   <!-- Descargar Teams -->
+  <div class="card card-success">
+    <div class="card-header">
+      <span>Inventario Teams</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
       <div class="card-icon">
         <i class="fa-solid fa-file-excel"></i>
       </div>
-      <h3>Descargar Teams</h3>
-      <p>Exportar a Excel con TODOS los equipos (Teams) del tenant.</p>
-      <span class="btn btn-success">Descargar <i class="fa-solid fa-download"></i></span>
+      <p>Exportar reporte completo</p>
     </div>
-  </a>
-
-  <!-- Desvincular Miembros (Vaciar Equipos) -->
-  <a href="{{ url_for('upload', accion='desvincular') }}" class="card-link" style="display: none;">
-    <div class="card card-warning">
-      <div class="card-icon">
-        <i class="fa-solid fa-link-slash"></i>
-      </div>
-      <h3>Remover Usuarios (Teams)</h3>
-      <p>Remover estudiantes y docentes (Owners) dejando solo cuenta Admin.</p>
-      <span class="btn btn-warning">Vaciar Grupos <i class="fa-solid fa-people-arrows"></i></span>
+    <div class="card-footer">
+      <a href="{{ url_for('descargar_inventario') }}" class="btn btn-primary" style="background-color: var(--success); border-color: var(--success);">DESCARGAR</a>
     </div>
-  </a>
+  </div>
 
   <!-- Eliminar Teams -->
-  <a href="{{ url_for('upload', accion='eliminar_teams') }}" class="card-link">
-    <div class="card card-danger">
+  <div class="card card-danger">
+     <div class="card-header">
+      <span>Eliminar Equipos</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
       <div class="card-icon">
         <i class="fa-solid fa-trash-can"></i>
       </div>
-      <h3>Eliminar Equipos (Teams)</h3>
-      <p>Eliminar Teams de clase y desvincula a usuarios automaticamente.</p>
-      <span class="btn btn-danger">Eliminar Teams <i class="fa-solid fa-triangle-exclamation"></i></span>
+      <p>Eliminar Teams y desvincular</p>
     </div>
-  </a>
-
-  <!-- Crear Teams con Múltiples Owners -->
-  <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="card-link">
-    <div class="card card-accent">
-      <div class="card-icon">
-        <i class="fa-solid fa-users-plus"></i>
-      </div>
-      <h3>Crear Teams con Owners</h3>
-      <p>Clona Teams y agrega múltiples owners automáticamente.</p>
-      <span class="btn btn-primary">Crear Teams <i class="fa-solid fa-copy"></i></span>
+    <div class="card-footer">
+      <a href="{{ url_for('upload', accion='eliminar_teams') }}" class="btn btn-primary" style="background-color: var(--danger); border-color: var(--danger);">ELIMINAR</a>
     </div>
-  </a>
-
-  <!-- Aprovisionar a Grupos -->
-  <a href="{{ url_for('upload', accion='aprovisionar_grupos') }}" class="card-link" style="display: none;">
-    <div class="card">
-      <div class="card-icon">
-        <i class="fa-solid fa-share-nodes"></i>
-      </div>
-      <h3>Aprovisionar a Grupos</h3>
-      <p>Asociar estudiantes a grupos según su curso 2026.</p>
-      <span class="btn btn-primary">Aprovisionar <i class="fa-solid fa-check"></i></span>
-    </div>
-  </a>
-
-  <!-- Sincronización Automática Teams -->
-  <div class="card card-featured">
-    <div class="card-badge">Directo Tenant</div>
-    <div class="card-icon">
-      <i class="fa-solid fa-bolt"></i>
-    </div>
-    <h3>Sincronización Automática</h3>
-    <p>Mapea el tenant y vincula a estudiantes a equipos de Teams periodo 2026.</p>
-    <form action="{{ url_for('sync_teams') }}" method="POST" class="mt-2">
-      <div class="mb-3">
-          <label class="form-label text-white-50" style="font-size:0.9rem">Sincronización Rápida (1 Estudiante):</label>
-          <div style="display: flex; gap: 5px;">
-              <input type="email" name="single_upn" class="form-control" placeholder="correo@colegio.edu.co" style="padding: 5px 10px; font-size: 0.9rem;">
-              <button type="submit" class="btn btn-primary" title="Sincronizar solo este usuario">
-                  <i class="fas fa-bolt"></i>
-              </button>
-          </div>
-      </div>
-    </form>
-    
-    <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 10px 0;"></div>
-
-    <form action="{{ url_for('sync_teams') }}" method="POST"
-      onsubmit="return confirm('¿Estás seguro de iniciar la sincronización masiva de EQUIPOS?')">
-      <button type="submit" class="btn btn-warning btn-full" style="background-color: #ffbf00; color: #000; font-weight: bold;">
-        Sincronizar TODOS (Masivo) <i class="fa-solid fa-users-viewfinder"></i>
-      </button>
-    </form>
   </div>
+</div>
 
-  <!-- Sincronización Automática de Políticas -->
-  <div class="card card-featured">
-    <div class="card-badge">Seguridad EDU</div>
-    <div class="card-icon">
-      <i class="fa-solid fa-shield-halved"></i>
+<!-- SECCIÓN: GRUPOS & ADMIN -->
+<h3 class="section-title" style="margin: 30px 0 10px; color: var(--text-light); font-weight: 500; font-size: 0.9rem; text-transform: uppercase;">Administración</h3>
+<div class="card-grid">
+  <!-- Gestión de Grupos -->
+  <div class="card">
+    <div class="card-badge">NUEVO</div>
+    <div class="card-header">
+      <span>Gestión de Grupos</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
     </div>
-    <h3>Sincronizar Políticas Teams</h3>
-    <p>Aplica automáticamente el paquete de políticas a estudiantes 2026.</p>
-    <form action="{{ url_for('sync_policies') }}" method="POST"
-      onsubmit="return confirm('¿Deseas aplicar las políticas de seguridad a todos los estudiantes detectados?')">
-      <button type="submit" class="btn btn-warning btn-full">
-        Aplicar Políticas <i class="fa-solid fa-user-shield"></i>
-      </button>
-    </form>
-  </div>
-
-
-  <!-- Exportar Dataset -->
-  <a href="{{ url_for('export_dataset') }}" class="card-link">
-    <div class="card card-featured">
-    <div class="card-badge">Validación</div>
-      <div class="card-icon">
-        <i class="fa-solid fa-file-export"></i>
-      </div>
-      <h3>Exportar Dataset (Validación)</h3>
-      <p>Generar Excel con usuarios por departamento para validar actualizaciones.</p>
-      <span class="btn btn-success" style="width:100%">Exportar a Excel <i class="fa-solid fa-file-excel"></i></span>
-    </div>
-  </a>
-
-  <!-- Asignar Políticas (Manual) -->
-  <!-- Restablecer Contraseña -->
-  <a href="{{ url_for('reset_password') }}" class="card-link">
-    <div class="card card-featured">
-    <div class="card-badge">Soporte</div>
-      <div class="card-icon">
-        <i class="fa-solid fa-key"></i>
-      </div>
-      <h3>Restablecimiento Rápido</h3>
-      <p>Buscar usuario por nombre y restablecer contraseña manualmente.</p>
-      <span class="btn btn-primary" style="width:100%">Restablecer <i class="fa-solid fa-wand-magic-sparkles"></i></span>
-    </div>
-  </a>
-
-  <!-- Configuración del Sistema -->
-  <a href="{{ url_for('setup') }}" class="card-link">
-    <div class="card card-accent">
-      <div class="card-icon">
-        <i class="fa-solid fa-gears"></i>
-      </div>
-      <h3>Configuración del Sistema</h3>
-      <p>Modificar credenciales de Azure, nombre del colegio o periodo escolar.</p>
-      <span class="btn btn-primary">Configurar <i class="fa-solid fa-wrench"></i></span>
-    </div>
-  </a>
-
-  <!-- Gestión de Grupos de Seguridad -->
-  <a href="{{ url_for('gestion_grupos_dashboard') }}" class="card-link">
-    <div class="card card-featured">
-      <div class="card-badge">Nuevo</div>
+    <div class="card-body">
       <div class="card-icon">
         <i class="fa-solid fa-users-gear"></i>
       </div>
-      <h3>Gestión de Grupos y Listas</h3>
-      <p>Crear grupos de seguridad, habilitar correo, auditar miembros y limpieza.</p>
-      <span class="btn btn-primary" style="width:100%">Abrir Gestor <i class="fa-solid fa-arrow-right"></i></span>
+      <p>Administración de listas</p>
     </div>
-  </a>
+    <div class="card-footer">
+      <a href="{{ url_for('gestion_grupos_dashboard') }}" class="btn btn-primary">GESTIONAR</a>
+    </div>
+  </div>
 
-  <!-- Ver Logs -->
-  <a href="{{ url_for('logs') }}" class="card-link">
-    <div class="card">
-      <div class="card-icon">
-        <i class="fa-solid fa-file-lines"></i>
-      </div>
-      <h3>Historial de Logs</h3>
-      <p>Consultar resultados y errores de procesos anteriores.</p>
-      <span class="btn btn-primary">Ver Historial <i class="fa-solid fa-clock-rotate-left"></i></span>
+   <!-- Configuración -->
+  <div class="card">
+    <div class="card-header">
+      <span>Configuración</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
     </div>
-  </a>
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="fa-solid fa-gears"></i>
+        </div>
+        <p>Ajustes del sistema</p>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('setup') }}" class="btn btn-primary">CONFIGURAR</a>
+    </div>
+  </div>
+
+  <!-- Exportar Dataset -->
+  <div class="card card-success">
+    <div class="card-badge">VAL</div>
+    <div class="card-header">
+      <span>Exportar Dataset</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
+      <div class="card-icon">
+        <i class="fa-solid fa-file-export"></i>
+      </div>
+      <p>Excel de validación</p>
+    </div>
+    <div class="card-footer">
+      <a href="{{ url_for('export_dataset') }}" class="btn btn-primary" style="background-color: var(--success); border-color: var(--success);">EXPORTAR</a>
+    </div>
+  </div>
+
+   <!-- Reset Password -->
+  <div class="card">
+    <div class="card-header">
+      <span>Restablecer Clave</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="fa-solid fa-key"></i>
+        </div>
+        <p>Cambio rápido de contraseña</p>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('reset_password') }}" class="btn btn-primary">ACCEDER</a>
+    </div>
+  </div>
+
+    <!-- Logs -->
+  <div class="card">
+    <div class="card-header">
+      <span>Registros (Logs)</span>
+      <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+    </div>
+    <div class="card-body">
+        <div class="card-icon" style="color: var(--text-muted);">
+            <i class="fa-regular fa-file-lines"></i>
+        </div>
+        <p>Historial de operaciones</p>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('logs') }}" class="btn btn-secondary">VER LOGS</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

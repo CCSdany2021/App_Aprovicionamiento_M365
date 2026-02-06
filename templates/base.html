@@ -4,141 +4,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automatización de Usuarios y Grupos M365</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2.2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-theme.css') }}?v=2.2">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Automatización M365</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=3.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
-<body>
+<body class="eset-theme">
     <div class="app-container">
-        <!-- Header de todo el width -->
-        <header class="global-header">
+        <!-- Top App Header (Dark) -->
+        <header class="app-header">
             <div class="header-left">
-                <h1><i class="fa-brands fa-microsoft"></i> Gestión Proceso de Automatización de Usuarios/Grupos M365
-                </h1>
+                <div class="brand-logo">
+                    <span class="brand-eset">GESTIÓN Y APROVISIONAMIENTO</span> <span class="brand-protect">M365</span>
+                    <i class="fa-solid fa-grip-dots header-dots"></i>
+                </div>
             </div>
+            
+            <div class="header-center">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Buscar...">
+                    <i class="fa-regular fa-circle-question help-icon"></i>
+                </div>
+            </div>
+
             <div class="header-right">
-                <div class="theme-toggle-container">
-                    <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema">
-                        <div class="theme-toggle-slider">
-                            <i class="fa-solid fa-moon" id="theme-icon"></i>
-                        </div>
-                    </div>
+                <div class="header-action">
+                    <span>VÍNCULOS RÁPIDOS</span> <i class="fa-solid fa-chevron-down"></i>
                 </div>
-                <div class="user-badge">
-                    <i class="fa-solid fa-circle-user"></i> {{ session.get('user', 'Admin') }}
+                <div class="header-action">
+                    <span>AYUDA</span> <i class="fa-solid fa-chevron-down"></i>
                 </div>
-                <div class="user-info">
-                    <p>Sistema de Aprovisionamiento M365</p>
-                    <strong>Dany Diaz - Coordinador TIC</strong>
+                <div class="header-user">
+                    <i class="fa-regular fa-user"></i>
+                    <span>{{ session.get('user', 'Admin') }}</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="header-logout">
+                    <a href="{{ url_for('logout') }}" title="Cerrar Sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i> SALIR</a>
                 </div>
             </div>
         </header>
 
-        <div class="main-layout">
+        <div class="main-wrapper">
+            <!-- Dark Sidebar -->
             <aside class="sidebar">
                 <nav class="nav-menu">
-                    <a href="{{ url_for('index') }}" class="nav-item">
-                        <i class="fa-solid fa-house"></i> Inicio
+                    <!-- Dashboard -->
+                    <a href="{{ url_for('index') }}" class="nav-item {{ 'active' if request.endpoint == 'index' else '' }}">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Tablero</span>
+                    </a>
+                    
+                    <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                         <i class="fa-solid fa-chart-pie"></i>
+                         <span>Estadísticas</span>
                     </a>
 
-                    <div class="nav-category">Aprovisionamiento</div>
-                    <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
-                        <i class="fa-solid fa-user-plus"></i> Crear Estudiantes
-                    </a>
-                    <a href="{{ url_for('upload', accion='actualizar') }}" class="nav-item">
-                        <i class="fa-solid fa-user-pen"></i> Actualizar Estudiantes
-                    </a>
-                    <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
-                        <i class="fa-solid fa-user-xmark"></i> Eliminar Estudiantes
-                    </a>
+                    <div class="nav-separator"></div>
 
-                    <div class="nav-category">Microsoft Teams</div>
-                    <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="nav-item">
-                        <i class="fa-solid fa-people-group"></i> Crear Equipos
-                    </a>
-                    <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
-                        <i class="fa-solid fa-users-slash"></i> Vaciar Equipos
-                    </a>
+                    <!-- Estudiantes Menu -->
+                    <div class="nav-group">
+                        <div class="nav-group-header" onclick="toggleMenu(this)">
+                            <i class="fa-solid fa-user-graduate group-icon"></i>
+                            <span>Estudiantes</span>
+                            <i class="fa-solid fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="{{ url_for('upload', accion='crear') }}" class="nav-item">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Crear Nuevo</span>
+                            </a>
+                            <a href="{{ url_for('upload', accion='actualizar') }}" class="nav-item">
+                                <i class="fa-solid fa-user-pen"></i>
+                                <span>Actualizar Datos</span>
+                            </a>
+                            <a href="{{ url_for('upload', accion='eliminar') }}" class="nav-item">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Eliminar Usuario</span>
+                            </a>
+                        </div>
+                    </div>
 
-                    <div class="nav-category">Administración Local</div>
-                    <a href="{{ url_for('ccs_dashboard') }}" class="nav-item">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                        <span>Reglas de Reenvío CCS</span>
-                    </a>
+                    <!-- Teams Menu -->
+                    <div class="nav-group">
+                        <div class="nav-group-header" onclick="toggleMenu(this)">
+                            <i class="fa-brands fa-microsoft group-icon"></i>
+                            <span>Microsoft Teams</span>
+                            <i class="fa-solid fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-submenu">
+                             <a href="{{ url_for('index') }}#teams-sync" class="nav-item"> <!-- Deep link example -->
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Sincronización</span>
+                            </a>
+                            <a href="{{ url_for('upload', accion='crear_teams_con_owners') }}" class="nav-item">
+                                <i class="fa-solid fa-users-viewfinder"></i>
+                                <span>Crear Equipos</span>
+                            </a>
+                             <a href="{{ url_for('upload', accion='asignar_politicas') }}" class="nav-item">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>Políticas</span>
+                            </a>
+                            <a href="{{ url_for('upload', accion='desvincular') }}" class="nav-item">
+                                <i class="fa-solid fa-users-slash"></i>
+                                <span>Vaciar Equipos</span>
+                            </a>
+                             <a href="{{ url_for('descargar_inventario') }}" class="nav-item">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>Inventario</span>
+                            </a>
+                        </div>
+                    </div>
 
-                    <div class="nav-category">Sistema</div>
-                    <a href="{{ url_for('ver_resultados') }}" class="nav-item">
-                        <i class="fa-solid fa-folder-tree"></i> Archivos Generados
-                    </a>
-                    <a href="{{ url_for('logs') }}" class="nav-item">
-                        <i class="fa-solid fa-file-lines"></i> Logs
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="nav-item logout-link">
-                        <i class="fa-solid fa-right-from-bracket"></i> Salir
-                    </a>
+                     <!-- Grupos Menu -->
+                    <div class="nav-group">
+                        <div class="nav-group-header" onclick="toggleMenu(this)">
+                            <i class="fa-solid fa-layer-group group-icon"></i>
+                            <span>Grupos Seguridad</span>
+                            <i class="fa-solid fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-submenu">
+                             <a href="{{ url_for('gestion_grupos_dashboard') }}" class="nav-item">
+                                <i class="fa-solid fa-list-check"></i>
+                                <span>Panel General</span>
+                            </a>
+                             <a href="{{ url_for('upload', accion='gestion_grupos_crear') }}" class="nav-item">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>Crear Masivo</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Admin Menu -->
+                    <div class="nav-group">
+                        <div class="nav-group-header" onclick="toggleMenu(this)">
+                            <i class="fa-solid fa-screwdriver-wrench group-icon"></i>
+                            <span>Administración</span>
+                            <i class="fa-solid fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="{{ url_for('ccs_dashboard') }}" class="nav-item">
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>Reglas de Correo</span>
+                            </a>
+                            <a href="{{ url_for('ver_resultados') }}" class="nav-item">
+                                <i class="fa-solid fa-file-contract"></i>
+                                <span>Informes</span>
+                            </a>
+                            <a href="{{ url_for('logs') }}" class="nav-item">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span>Logs del Sistema</span>
+                            </a>
+                             <a href="{{ url_for('setup') }}" class="nav-item">
+                                <i class="fa-solid fa-gears"></i>
+                                <span>Configuración</span>
+                            </a>
+                        </div>
+                    </div>
                 </nav>
+                
+                <div class="sidebar-footer">
+                   <div style="padding: 15px 20px; color: #E0E0E0; font-size: 0.85rem; font-weight: 500; border-top: 1px solid #455A64; text-align: center;">
+                        &copy; 2026 Coordinador TIC Calasanz Suba
+                   </div>
+                   <div class="sidebar-collapse">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        <span>CONTRAER</span>
+                   </div>
+                </div>
             </aside>
 
+            <!-- Main Content Area -->
             <main class="main-content">
-                <header class="top-bar">
-                    <h2>{% block header %}Panel de Control{% endblock %}</h2>
+                <!-- Content Header / Breadcrumb area -->
+                 <header class="content-header">
+                    <h2 class="page-title">{% block header %}Panel de Control{% endblock %}</h2>
+                    <div class="breadcrumb">
+                        <span>Inicio</span> <i class="fa-solid fa-chevron-right"></i> <span class="current">{% block breadcrumb %}General{% endblock %}</span>
+                    </div>
                 </header>
+                
+                <!-- Inner Tabs (Visual styling only mostly) -->
+                <div class="content-tabs">
+                    <a href="#" class="tab-item active">Básico</a>
+                    <a href="#" class="tab-item">Configuración</a>
+                    <a href="#" class="tab-item">Ayuda</a>
+                </div>
 
-                <div class="content-area">
+                <div class="scrollable-content">
                     {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                    <div class="flash-messages">
+                    <div class="flash-messages-container">
                         {% for category, message in messages %}
-                        <div class="alert {{ category }}">
-                            <i
-                                class="fa-solid {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }}"></i>
-                            {{ message }}
+                        <div class="alert-modern {{ category }}">
+                            <div class="alert-icon">
+                                <i class="fa-solid {{ 'fa-check' if category == 'success' else 'fa-triangle-exclamation' }}"></i>
+                            </div>
+                            <div class="alert-content">{{ message }}</div>
+                            <button class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
                         </div>
                         {% endfor %}
                     </div>
                     {% endif %}
                     {% endwith %}
 
-                    {% block content %}{% endblock %}
+                    <div class="inner-workspace">
+                         {% block content %}{% endblock %}
+                    </div>
                 </div>
             </main>
         </div>
-
-        <footer class="global-footer">
-            <p>Desarrollado por <span class="highlight">Dany Diaz</span> - Coordinador TIC Calasanz Suba &copy; 2026</p>
-        </footer>
     </div>
-
+    
     <script>
-        // Load saved theme on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
+        // Simple script to handle sidebar collapse simulation
+        document.querySelector('.sidebar-collapse').addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-collapsed');
         });
 
-        // Toggle theme function
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-
-        // Update icon based on theme
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('theme-icon');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        // Toggle Sidebar Submenus
+        function toggleMenu(header) {
+            // Toggle active state for arrow rotation
+            header.classList.toggle('active');
+            
+            // Toggle visibility of the submenu
+            var submenu = header.nextElementSibling;
+            if (submenu && submenu.classList.contains('nav-submenu')) {
+                submenu.classList.toggle('open');
             }
         }
     </script>
 </body>
-
 </html>

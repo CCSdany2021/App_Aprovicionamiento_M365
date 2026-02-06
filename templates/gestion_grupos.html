@@ -10,78 +10,128 @@
             <!-- 1. Inventario -->
             <div class="card card-featured">
                 <div class="card-badge">Reporte</div>
-                <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
-                <h3>Inventario General</h3>
-                <p>Descargar Excel con TODOS los grupos de seguridad y su estado.</p>
-                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
-                    <input type="hidden" name="tipo_accion" value="inventario">
-                    <button type="submit" class="btn btn-primary btn-full">Generar Inventario <i class="fa-solid fa-download"></i></button>
-                </form>
+                <div class="card-header">
+                    <span>Inventario General</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <p>Descargar Excel con TODOS los grupos</p>
+                </div>
+                <div class="card-footer">
+                   <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                        <input type="hidden" name="tipo_accion" value="inventario">
+                        <button type="submit" class="btn btn-primary">GENERAR INVENTARIO</button>
+                    </form>
+                </div>
             </div>
 
             <!-- 2. Exportar Miembros -->
             <div class="card">
-                <div class="card-icon"><i class="fa-solid fa-users-viewfinder"></i></div>
-                <h3>Exportar Miembros</h3>
-                <p>Descargar lista de usuarios de un grupo específico.</p>
-                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
-                    <input type="hidden" name="tipo_accion" value="miembros">
-                    <div class="mb-3">
-                        <input type="text" name="nombre_grupo" class="form-control" placeholder="Nombre del grupo (ej. Profesores)" required>
+                <div class="card-header">
+                    <span>Exportar Miembros</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body" style="padding: 15px;">
+                    <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 10px;">
+                        <i class="fa-solid fa-users-viewfinder"></i>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Buscar y Exportar <i class="fa-solid fa-magnifying-glass"></i></button>
-                </form>
+                    <p style="margin-bottom: 15px;">Listar usuarios de un grupo</p>
+                    <form action="{{ url_for('gestion_grupos_accion') }}" method="POST" style="width: 100%;">
+                        <input type="hidden" name="tipo_accion" value="miembros">
+                        <div class="mb-3">
+                            <input type="text" name="nombre_grupo" placeholder="Nombre exacto del grupo..." required style="width: 100%; padding: 8px; border: 1px solid #DDE2E6; border-radius: 4px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary">BUSCAR Y EXPORTAR</button>
+                    </form>
+                </div>
             </div>
 
             <!-- 3. Crear Masivamente -->
             <div class="card card-accent">
-                <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                <h3>Crear Grupos Masivos</h3>
-                <p>Cargar Excel para crear múltiples grupos automáticamente.</p>
-                <div style="display: flex; gap: 0.5rem; width: 100%;">
-                    <a href="{{ url_for('upload', accion='gestion_grupos_crear') }}" class="btn btn-primary" style="flex: 1;">Crear <i class="fa-solid fa-upload"></i></a>
-                    <a href="{{ url_for('descargar_plantilla', tipo='grupos_seguridad') }}" class="btn btn-secondary" title="Plantilla"><i class="fa-solid fa-download"></i></a>
+                <div class="card-header">
+                    <span>Crear Grupos Masivos</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <p>Cargar Excel para crear múltiples grupos</p>
+                </div>
+                <div class="card-footer">
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a href="{{ url_for('upload', accion='gestion_grupos_crear') }}" class="btn btn-primary">CREAR</a>
+                        <a href="{{ url_for('descargar_plantilla', tipo='grupos_seguridad') }}" class="btn btn-secondary" title="Plantilla"><i class="fa-solid fa-download"></i></a>
+                    </div>
                 </div>
             </div>
 
             <!-- 4. Grupos Vacíos -->
             <div class="card card-warning">
-                <div class="card-icon"><i class="fa-solid fa-broom"></i></div>
-                <h3>Auditoría: Grupos Vacíos</h3>
-                <p>Detectar grupos que NO tienen miembros para limpieza.</p>
-                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
-                    <input type="hidden" name="tipo_accion" value="vacios">
-                    <button type="submit" class="btn btn-warning btn-full">Analizar Tenant <i class="fa-solid fa-stethoscope"></i></button>
-                </form>
+                <div class="card-header">
+                    <span>Auditoría: Grupos Vacíos</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-broom"></i>
+                    </div>
+                    <p>Detectar grupos sin miembros</p>
+                </div>
+                <div class="card-footer">
+                    <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
+                        <input type="hidden" name="tipo_accion" value="vacios">
+                        <button type="submit" class="btn btn-primary btn-warning" style="background-color: var(--warning); border-color: var(--warning);">ANALIZAR TENANT</button>
+                    </form>
+                </div>
             </div>
 
 
             <!-- 5. Agregar Usuario Individual -->
             <div class="card card-success">
-                <div class="card-icon"><i class="fa-solid fa-user-plus"></i></div>
-                <h3>Agregar Miembro Rápido</h3>
-                <p>Vincular un usuario a un grupo existente.</p>
-                <form action="{{ url_for('gestion_grupos_accion') }}" method="POST">
-                    <input type="hidden" name="tipo_accion" value="agregar_individual">
-                    <div class="mb-2">
-                        <input type="text" name="usuario" class="form-control" placeholder="Email o UPN Usuario" required style="font-size:0.9rem">
+                <div class="card-header">
+                    <span>Agregar Miembro Rápido</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body" style="padding: 15px;">
+                    <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 10px;">
+                        <i class="fa-solid fa-user-plus"></i>
                     </div>
-                    <div class="mb-2">
-                        <input type="text" name="grupo" class="form-control" placeholder="Nombre del Grupo Destino" required style="font-size:0.9rem">
-                    </div>
-                    <button type="submit" class="btn btn-success btn-full">Agregar <i class="fa-solid fa-plus"></i></button>
-                </form>
+                    <p style="margin-bottom: 10px;">Vincular un usuario a un grupo</p>
+                    <form action="{{ url_for('gestion_grupos_accion') }}" method="POST" style="width: 100%;">
+                        <input type="hidden" name="tipo_accion" value="agregar_individual">
+                        <div style="margin-bottom: 8px;">
+                            <input type="text" name="usuario" placeholder="Email o UPN Usuario" required style="width: 100%; padding: 8px; border: 1px solid #DDE2E6; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" name="grupo" placeholder="Nombre del Grupo Destino" required style="width: 100%; padding: 8px; border: 1px solid #DDE2E6; border-radius: 4px;">
+                        </div>
+                         <button type="submit" class="btn btn-primary btn-success" style="background-color: var(--success); border-color: var(--success);">AGREGAR +</button>
+                    </form>
+                </div>
             </div>
 
             <!-- 6. Agregar Masivo -->
             <div class="card card-featured">
                 <div class="card-badge">Importar</div>
-                <div class="card-icon"><i class="fa-solid fa-file-csv"></i></div>
-                <h3>Cargar Miembros Masivos</h3>
-                <p>Subir Excel con columnas: <b>Usuario, NombreGrupo</b>.</p>
-                <div style="display: flex; gap: 0.5rem; width: 100%; margin-top: auto;">
-                    <a href="{{ url_for('upload', accion='gestion_grupos_agregar_masivo') }}" class="btn btn-primary" style="flex: 1;">Subir Excel <i class="fa-solid fa-upload"></i></a>
-                    <a href="{{ url_for('descargar_plantilla', tipo='agregar_miembros') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+                 <div class="card-header">
+                    <span>Cargar Miembros Masivos</span>
+                    <i class="fa-solid fa-ellipsis-vertical card-menu-dots"></i>
+                </div>
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-file-csv"></i>
+                    </div>
+                    <p>Excel con columnas: Usuario, NombreGrupo</p>
+                </div>
+                <div class="card-footer">
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a href="{{ url_for('upload', accion='gestion_grupos_agregar_masivo') }}" class="btn btn-primary">SUBIR EXCEL</a>
+                        <a href="{{ url_for('descargar_plantilla', tipo='agregar_miembros') }}" class="btn btn-secondary" title="Descargar Plantilla"><i class="fa-solid fa-download"></i></a>
+                    </div>
                 </div>
             </div>
 
